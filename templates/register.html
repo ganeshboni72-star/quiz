@@ -1,0 +1,2007 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Logic Hunt | Register
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #030811;
+            --panel: rgba(7, 17, 30, 0.88);
+            --panel-2: rgba(10, 25, 42, 0.92);
+            --line: rgba(0, 234, 255, 0.22);
+            --cyan: #00eaff;
+            --blue: #247cff;
+            --green: #35ff9a;
+            --purple: #8b5cf6;
+            --text: #ecfbff;
+            --muted: #8da8ba;
+            --danger: #ff5d73;
+            --success: #2dd4a0;
+        }
+
+        html {
+            min-height: 100%;
+            background: var(--bg);
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 15% 10%, rgba(0,234,255,.12), transparent 28%),
+                radial-gradient(circle at 88% 82%, rgba(36,124,255,.12), transparent 30%),
+                radial-gradient(circle at 50% 110%, rgba(139,92,246,.08), transparent 32%),
+                linear-gradient(135deg, #02060d 0%, #06111e 52%, #02060d 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px 18px;
+            perspective: 1400px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Digital PCB grid */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: .7;
+            background-image:
+                linear-gradient(rgba(0,234,255,.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,234,255,.035) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+            animation: gridMove 24s linear infinite;
+        }
+
+        /* Ambient light */
+        body::after {
+            content: "";
+            position: fixed;
+            width: 520px;
+            height: 520px;
+            left: -220px;
+            top: -220px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(circle, rgba(0,234,255,.15), transparent 68%);
+            filter: blur(20px);
+            animation: ambientPulse 5s ease-in-out infinite;
+        }
+
+        @keyframes gridMove {
+            from { transform: translateY(0); }
+            to { transform: translateY(44px); }
+        }
+
+        @keyframes ambientPulse {
+            0%, 100% { opacity: .7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.08); }
+        }
+
+        /* Floating circuit traces */
+        .card {
+            width: min(100%, 540px);
+            padding: 42px;
+            position: relative;
+            z-index: 1;
+            isolation: isolate;
+            border: 1px solid rgba(0,234,255,.28);
+            border-radius: 24px;
+            background:
+                linear-gradient(145deg, rgba(13,31,49,.95), rgba(3,12,22,.96));
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            box-shadow:
+                0 30px 80px rgba(0,0,0,.65),
+                0 0 0 1px rgba(255,255,255,.025) inset,
+                0 0 35px rgba(0,234,255,.08),
+                0 0 100px rgba(36,124,255,.05);
+            transform-style: preserve-3d;
+            transition: transform .18s ease-out, box-shadow .35s ease;
+        }
+
+        /* Neon outer frame */
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: 25px;
+            padding: 1px;
+            background: linear-gradient(
+                135deg,
+                rgba(0,234,255,.75),
+                transparent 28%,
+                transparent 68%,
+                rgba(36,124,255,.7)
+            );
+            -webkit-mask:
+                linear-gradient(#000 0 0) content-box,
+                linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* PCB trace decoration */
+        .card::after {
+            content: "";
+            position: absolute;
+            right: -1px;
+            top: 90px;
+            width: 115px;
+            height: 170px;
+            pointer-events: none;
+            opacity: .7;
+            background:
+                linear-gradient(var(--cyan), var(--cyan)) 0 0 / 70px 1px no-repeat,
+                linear-gradient(var(--cyan), var(--cyan)) 35px 55px / 80px 1px no-repeat,
+                linear-gradient(var(--cyan), var(--cyan)) 55px 110px / 55px 1px no-repeat,
+                radial-gradient(circle, var(--cyan) 0 3px, transparent 4px) 66px -4px / 10px 10px no-repeat,
+                radial-gradient(circle, var(--cyan) 0 3px, transparent 4px) 108px 50px / 10px 10px no-repeat,
+                radial-gradient(circle, var(--cyan) 0 3px, transparent 4px) 52px 105px / 10px 10px no-repeat;
+            filter: drop-shadow(0 0 6px rgba(0,234,255,.8));
+        }
+
+        .card:hover {
+            box-shadow:
+                0 38px 90px rgba(0,0,0,.72),
+                0 0 45px rgba(0,234,255,.12),
+                0 0 120px rgba(36,124,255,.08),
+                inset 0 1px 0 rgba(255,255,255,.06);
+        }
+
+        /* 3D logo / chip */
+        .logo {
+            width: 76px;
+            height: 76px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            position: relative;
+            transform: translateZ(45px) rotateX(8deg) rotateY(-8deg);
+            transform-style: preserve-3d;
+            color: #021018;
+            font-size: 29px;
+            font-weight: 1000;
+            background:
+                linear-gradient(145deg, #8affd1 0%, var(--green) 35%, #00b8ff 100%);
+            border: 1px solid rgba(255,255,255,.35);
+            box-shadow:
+                0 12px 0 #087b88,
+                0 18px 28px rgba(0,0,0,.45),
+                0 0 35px rgba(0,234,255,.38),
+                inset 0 2px 5px rgba(255,255,255,.45);
+            text-shadow: 0 1px 0 rgba(255,255,255,.35);
+            transition: transform .45s cubic-bezier(.2,.8,.2,1);
+        }
+
+        .logo::before {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border: 1px solid rgba(0,20,30,.35);
+            border-radius: 12px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
+        }
+
+        .logo::after {
+            content: "";
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            right: -5px;
+            top: 12px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow:
+                0 0 7px #fff,
+                0 0 18px var(--cyan),
+                0 0 30px var(--cyan);
+        }
+
+        .logo:hover {
+            transform: translateZ(58px) rotateX(12deg) rotateY(18deg) scale(1.05);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: clamp(29px, 6vw, 38px);
+            font-weight: 950;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #f0feff;
+            transform: translateZ(30px);
+            text-shadow:
+                0 0 8px rgba(0,234,255,.35),
+                0 0 22px rgba(0,234,255,.18);
+        }
+
+        .divider {
+            width: 150px;
+            height: 2px;
+            margin: 20px auto;
+            position: relative;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            box-shadow: 0 0 13px rgba(0,234,255,.75);
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            position: absolute;
+            top: -4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 9px var(--cyan), 0 0 18px rgba(0,234,255,.7);
+        }
+
+        .divider::before { left: -5px; }
+        .divider::after { right: -5px; }
+
+        .sub {
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.8;
+            letter-spacing: .4px;
+            font-weight: 600;
+            max-width: 430px;
+            margin: 0 auto;
+        }
+
+        .sub::first-line {
+            color: var(--cyan);
+        }
+
+        .form {
+            margin-top: 28px;
+            transform: translateZ(18px);
+        }
+
+        .field {
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            padding-left: 3px;
+            color: #9cefff;
+            font-size: 10px;
+            font-weight: 850;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-shadow: 0 0 9px rgba(0,234,255,.25);
+        }
+
+        input,
+        select {
+            width: 100%;
+            height: 52px;
+            padding: 0 16px;
+            outline: none;
+            border: 1px solid rgba(120,180,210,.2);
+            border-radius: 12px;
+            color: var(--text);
+            background:
+                linear-gradient(145deg, rgba(12,31,48,.96), rgba(3,13,24,.96));
+            font-size: 14px;
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: .3px;
+            transition: .25s ease;
+            box-shadow:
+                0 7px 15px rgba(0,0,0,.25),
+                inset 0 1px 0 rgba(255,255,255,.035);
+        }
+
+        input::placeholder {
+            color: rgba(141,168,186,.55);
+        }
+
+        input:hover,
+        select:hover {
+            border-color: rgba(0,234,255,.34);
+            box-shadow:
+                0 8px 20px rgba(0,0,0,.32),
+                0 0 14px rgba(0,234,255,.06);
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--cyan);
+            transform: translateY(-2px);
+            box-shadow:
+                0 12px 25px rgba(0,0,0,.38),
+                0 0 0 4px rgba(0,234,255,.07),
+                0 0 25px rgba(0,234,255,.16),
+                inset 0 0 16px rgba(0,234,255,.04);
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        select option {
+            background: #071321;
+            color: var(--text);
+        }
+
+        /* 3D button */
+        button {
+            width: 100%;
+            height: 55px;
+            margin-top: 8px;
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 12px;
+            color: #021016;
+            background:
+                linear-gradient(135deg, #8bffd4 0%, #35ff9a 35%, #00cfff 100%);
+            font-weight: 950;
+            font-size: 13px;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+            transform: translateZ(25px);
+            box-shadow:
+                0 7px 0 #087a89,
+                0 13px 24px rgba(0,0,0,.42),
+                0 0 28px rgba(0,234,255,.28),
+                inset 0 2px 4px rgba(255,255,255,.45);
+            transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
+        }
+
+        button::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            left: -110%;
+            width: 70%;
+            background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent);
+            transform: skewX(-20deg);
+            transition: left .55s ease;
+        }
+
+        button::after {
+            content: "";
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #fff;
+            transform: translateY(-50%);
+            box-shadow: 0 0 8px #fff, 0 0 16px var(--cyan);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateZ(32px) translateY(-3px);
+            filter: brightness(1.06);
+            box-shadow:
+                0 10px 0 #087a89,
+                0 19px 35px rgba(0,0,0,.48),
+                0 0 42px rgba(0,234,255,.42),
+                inset 0 2px 5px rgba(255,255,255,.5);
+        }
+
+        button:hover:not(:disabled)::before {
+            left: 140%;
+        }
+
+        button:active:not(:disabled) {
+            transform: translateZ(12px) translateY(4px);
+            box-shadow:
+                0 2px 0 #087a89,
+                0 8px 18px rgba(0,0,0,.38),
+                0 0 24px rgba(0,234,255,.3);
+        }
+
+        button:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .error,
+        .success {
+            display: none;
+            margin-top: 18px;
+            padding: 13px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.5;
+            backdrop-filter: blur(12px);
+        }
+
+        .error {
+            color: #ffb0bb;
+            background: rgba(255,93,115,.08);
+            border: 1px solid rgba(255,93,115,.35);
+            box-shadow: 0 0 20px rgba(255,93,115,.08);
+        }
+
+        .success {
+            color: #a4ffe2;
+            background: rgba(45,212,160,.08);
+            border: 1px solid rgba(45,212,160,.35);
+            box-shadow: 0 0 20px rgba(45,212,160,.08);
+        }
+
+        .error.show,
+        .success.show {
+            display: block;
+            animation: messageIn .3s ease-out;
+        }
+
+        @keyframes messageIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 24px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .link a {
+            color: var(--cyan);
+            text-decoration: none;
+            font-weight: 850;
+            margin-left: 3px;
+            text-shadow: 0 0 10px rgba(0,234,255,.25);
+            transition: .2s ease;
+        }
+
+        .link a:hover {
+            color: #fff;
+            text-shadow:
+                0 0 8px #fff,
+                0 0 18px var(--cyan);
+        }
+
+        /* Small PCB corner nodes */
+        .field::after {
+            content: "";
+            position: absolute;
+            right: 10px;
+            bottom: 25px;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 7px var(--cyan);
+            opacity: .55;
+            pointer-events: none;
+        }
+
+        @media (max-width: 560px) {
+            body {
+                padding: 16px 12px;
+                align-items: flex-start;
+                padding-top: 22px;
+            }
+
+            .card {
+                padding: 30px 20px;
+                border-radius: 20px;
+            }
+
+            .card::after {
+                opacity: .35;
+                transform: scale(.8);
+                transform-origin: right top;
+            }
+
+            h1 {
+                font-size: 27px;
+                letter-spacing: 2px;
+            }
+
+            .logo {
+                width: 64px;
+                height: 64px;
+                font-size: 25px;
+            }
+
+            input,
+            select {
+                height: 50px;
+            }
+
+            button {
+                height: 52px;
+            }
+
+            .sub {
+                font-size: 11px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+
+    
+        /* =========================================
+           DIGITAL CIRCUIT VISUAL LAYERS
+        ========================================= */
+
+        .circuit-art {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: .9;
+        }
+
+        .circuit-art .trace {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            box-shadow: 0 0 8px var(--cyan), 0 0 20px rgba(0,234,255,.5);
+            transform-origin: left center;
+            animation: tracePulse 4s ease-in-out infinite;
+        }
+
+        .circuit-art .trace::after,
+        .circuit-art .trace::before {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 8px var(--cyan), 0 0 18px var(--cyan);
+        }
+
+        .circuit-art .trace::before { left: 0; }
+        .circuit-art .trace::after { right: 0; }
+
+        .trace.t1 { width: 260px; top: 17%; left: 2%; transform: rotate(8deg); }
+        .trace.t2 { width: 190px; top: 30%; right: -1%; transform: rotate(-18deg); animation-delay: .7s; }
+        .trace.t3 { width: 300px; bottom: 20%; left: -4%; transform: rotate(-10deg); animation-delay: 1.4s; }
+        .trace.t4 { width: 230px; bottom: 10%; right: 2%; transform: rotate(12deg); animation-delay: 2.1s; }
+
+        .circuit-art .chip {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: 1px solid rgba(0,234,255,.35);
+            border-radius: 12px;
+            background:
+                linear-gradient(145deg, rgba(13,36,55,.72), rgba(2,10,19,.75));
+            box-shadow:
+                0 0 25px rgba(0,234,255,.08),
+                inset 0 0 25px rgba(0,234,255,.04);
+            transform: rotate(18deg);
+        }
+
+        .circuit-art .chip::before {
+            content: "AND";
+            position: absolute;
+            inset: 24px;
+            display: grid;
+            place-items: center;
+            color: rgba(0,234,255,.75);
+            border: 1px solid rgba(0,234,255,.28);
+            border-radius: 7px;
+            font: 800 11px "Inter", sans-serif;
+            letter-spacing: 1px;
+            box-shadow: 0 0 12px rgba(0,234,255,.08);
+        }
+
+        .circuit-art .chip::after {
+            content: "";
+            position: absolute;
+            inset: -12px;
+            background:
+                linear-gradient(var(--cyan),var(--cyan)) 0 18px/12px 1px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 0 50px/12px 1px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 0 82px/12px 1px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 100% 18px/12px 1px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 100% 50px/12px 1px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 100% 82px/12px 1px no-repeat;
+            opacity: .65;
+        }
+
+        .chip.c1 { left: 4%; top: 42%; }
+        .chip.c2 { right: 5%; top: 18%; transform: rotate(-14deg) scale(.75); opacity: .6; }
+        .chip.c3 { right: 6%; bottom: 16%; transform: rotate(9deg) scale(.65); opacity: .5; }
+
+        .light-orb {
+            position: absolute;
+            width: 360px;
+            height: 360px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,234,255,.13), transparent 68%);
+            filter: blur(8px);
+            animation: orbFloat 7s ease-in-out infinite;
+        }
+
+        .orb1 { left: -170px; top: 25%; }
+        .orb2 {
+            right: -170px;
+            bottom: 5%;
+            background: radial-gradient(circle, rgba(36,124,255,.15), transparent 68%);
+            animation-delay: 2s;
+        }
+
+        @keyframes tracePulse {
+            0%, 100% { opacity: .25; filter: brightness(.8); }
+            50% { opacity: .85; filter: brightness(1.6); }
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-22px) scale(1.08); }
+        }
+
+        /* Stronger dynamic light on the main card */
+        .card .light-surface {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background:
+                radial-gradient(
+                    circle at var(--light-x, 50%) var(--light-y, 50%),
+                    rgba(0,234,255,.13),
+                    transparent 32%
+                );
+            mix-blend-mode: screen;
+            opacity: .8;
+            z-index: -1;
+        }
+
+        .card .edge-light {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,.12),
+                inset 0 -1px 0 rgba(0,234,255,.08);
+        }
+
+        @media (max-width: 700px) {
+            .circuit-art .chip {
+                opacity: .25;
+                transform: scale(.65) rotate(12deg);
+            }
+
+            .circuit-art .trace {
+                opacity: .4;
+            }
+        }
+
+    
+        /* =========================================
+           NEXT-GEN DIGITAL CIRCUIT / LOGIC LAB
+        ========================================= */
+
+        body {
+            background:
+                radial-gradient(circle at 50% 45%, rgba(0,234,255,.055), transparent 28%),
+                radial-gradient(circle at 5% 15%, rgba(65,255,180,.09), transparent 25%),
+                radial-gradient(circle at 95% 85%, rgba(70,100,255,.10), transparent 28%),
+                linear-gradient(135deg, #01050a 0%, #06111b 48%, #02070d 100%);
+        }
+
+        /* Fine PCB matrix */
+        body::before {
+            opacity: .52;
+            background-image:
+                linear-gradient(rgba(0,234,255,.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,234,255,.035) 1px, transparent 1px),
+                radial-gradient(circle, rgba(0,234,255,.18) 1px, transparent 1.5px);
+            background-size: 44px 44px, 44px 44px, 44px 44px;
+        }
+
+        /* Large circuit-board atmosphere */
+        .circuit-art {
+            opacity: 1;
+        }
+
+        .circuit-art::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, transparent 49.8%, rgba(0,234,255,.045) 50%, transparent 50.2%),
+                linear-gradient(transparent 49.8%, rgba(0,234,255,.035) 50%, transparent 50.2%);
+            background-size: 180px 180px;
+            mask-image: radial-gradient(circle at center, black, transparent 75%);
+        }
+
+        /* Circuit routes */
+        .circuit-art .trace {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,234,255,.9), rgba(65,255,180,.8), transparent);
+            box-shadow:
+                0 0 6px rgba(0,234,255,.75),
+                0 0 18px rgba(0,234,255,.25);
+        }
+
+        .circuit-art .trace.t1 {
+            width: 340px;
+            top: 13%;
+            left: -30px;
+            transform: rotate(11deg);
+        }
+
+        .circuit-art .trace.t2 {
+            width: 280px;
+            top: 26%;
+            right: -40px;
+            transform: rotate(-13deg);
+        }
+
+        .circuit-art .trace.t3 {
+            width: 380px;
+            bottom: 17%;
+            left: -65px;
+            transform: rotate(-7deg);
+        }
+
+        .circuit-art .trace.t4 {
+            width: 300px;
+            bottom: 9%;
+            right: -35px;
+            transform: rotate(10deg);
+        }
+
+        /* Additional IC-style circuit blocks */
+        .circuit-art .chip {
+            border-color: rgba(0,234,255,.22);
+            box-shadow:
+                0 0 30px rgba(0,234,255,.07),
+                inset 0 0 25px rgba(0,234,255,.035);
+        }
+
+        .circuit-art .chip::before {
+            content: "IC";
+            color: rgba(0,234,255,.55);
+        }
+
+        /* Central card = floating hardware module */
+        .card {
+            border-color: rgba(0,234,255,.32);
+            background:
+                linear-gradient(145deg, rgba(9,26,41,.97), rgba(2,10,18,.985));
+            box-shadow:
+                0 35px 100px rgba(0,0,0,.72),
+                0 0 45px rgba(0,234,255,.09),
+                0 0 120px rgba(36,124,255,.045),
+                inset 0 1px 0 rgba(255,255,255,.07),
+                inset 0 0 50px rgba(0,234,255,.025);
+        }
+
+        /* PCB corner traces around the card */
+        .card::after {
+            width: 150px;
+            height: 210px;
+            top: 72px;
+            opacity: .48;
+            background:
+                linear-gradient(var(--cyan),var(--cyan)) 0 0 / 72px 1px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 35px 54px / 92px 1px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 55px 108px / 78px 1px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 15px 163px / 105px 1px no-repeat,
+                radial-gradient(circle, var(--cyan) 0 2px, transparent 3px) 65px -4px / 10px 10px no-repeat,
+                radial-gradient(circle, var(--cyan) 0 2px, transparent 3px) 120px 49px / 10px 10px no-repeat,
+                radial-gradient(circle, var(--cyan) 0 2px, transparent 3px) 52px 103px / 10px 10px no-repeat,
+                radial-gradient(circle, var(--cyan) 0 2px, transparent 3px) 115px 158px / 10px 10px no-repeat;
+        }
+
+        /* =========================================
+           CLEAN LOGIC-GATE EMBLEM
+        ========================================= */
+
+        .logo {
+            width: 150px;
+            height: 105px;
+            margin: 0 auto 22px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transform: translateZ(48px);
+            transform-style: preserve-3d;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            transition: transform .35s cubic-bezier(.2,.8,.2,1);
+        }
+
+        /* Soft circular aura behind the gate */
+        .logo::before {
+            content: "";
+            position: absolute;
+            width: 112px;
+            height: 112px;
+            border-radius: 50%;
+            background: radial-gradient(
+                circle,
+                rgba(0,234,255,.13) 0%,
+                rgba(0,234,255,.045) 38%,
+                transparent 72%
+            );
+            filter: blur(3px);
+            pointer-events: none;
+        }
+
+        /* Tiny PCB indicator */
+        .logo::after {
+            content: "";
+            position: absolute;
+            right: 10px;
+            top: 15px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #dffff7;
+            box-shadow:
+                0 0 7px #fff,
+                0 0 15px var(--cyan),
+                0 0 25px rgba(0,234,255,.8);
+            animation: gateLed 1.7s ease-in-out infinite;
+        }
+
+        .logo:hover {
+            transform: translateZ(62px) scale(1.035);
+        }
+
+        .gate-symbol {
+            width: 148px;
+            height: 96px;
+            overflow: visible;
+            position: relative;
+            z-index: 2;
+            filter:
+                drop-shadow(0 0 3px rgba(0,234,255,.9))
+                drop-shadow(0 0 9px rgba(0,234,255,.35));
+        }
+
+        .gate-wire {
+            fill: none;
+            stroke: url(#cleanGate);
+            stroke-width: 5;
+            stroke-linecap: round;
+            filter: url(#cleanGlow);
+        }
+
+        .gate-body {
+            fill: rgba(0,234,255,.035);
+            stroke: url(#cleanGate);
+            stroke-width: 5;
+            stroke-linejoin: round;
+            filter: url(#cleanGlow);
+        }
+
+        .gate-accent {
+            fill: none;
+            stroke: rgba(108,255,218,.42);
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+
+        .gate-node {
+            fill: #d8fff5;
+            stroke: var(--cyan);
+            stroke-width: 2;
+            filter: url(#cleanGlow);
+        }
+
+        .gate-node.output {
+            fill: #fff;
+        }
+
+        .signal-dot {
+            fill: #fff;
+            filter: url(#cleanGlow);
+            animation: signalMove 1.8s linear infinite;
+        }
+
+        .signal-two {
+            animation-delay: .9s;
+        }
+
+        @keyframes signalMove {
+            0% { opacity: 0; transform: translateX(-8px); }
+            18% { opacity: 1; }
+            42% { opacity: 1; transform: translateX(20px); }
+            55%, 100% { opacity: 0; transform: translateX(42px); }
+        }
+
+        @keyframes gateLed {
+            0%, 100% { opacity: .45; }
+            50% { opacity: 1; }
+        }
+
+        @media (max-width: 560px) {
+            .logo {
+                width: 130px;
+                height: 94px;
+            }
+
+            .gate-symbol {
+                width: 128px;
+                height: 84px;
+            }
+        }
+
+    
+        /* =========================================
+           DIGITAL ELECTRONICS BACKGROUND
+        ========================================= */
+
+        .electronics-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: .72;
+        }
+
+        .electronics-bg::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 50% 50%, transparent 22%, rgba(0,234,255,.025) 48%, transparent 72%);
+        }
+
+        /* Processor / IC */
+        .bg-chip {
+            position: absolute;
+            width: 230px;
+            height: 145px;
+            left: 3%;
+            top: 12%;
+            border: 1px solid rgba(0,234,255,.20);
+            border-radius: 12px;
+            background: linear-gradient(145deg, rgba(8,25,39,.68), rgba(2,10,18,.38));
+            box-shadow:
+                0 0 35px rgba(0,234,255,.06),
+                inset 0 0 30px rgba(0,234,255,.025);
+            transform: rotate(-8deg);
+        }
+
+        .chip-title {
+            position: absolute;
+            top: 12px;
+            left: 16px;
+            color: rgba(0,234,255,.45);
+            font: 700 8px "Inter", sans-serif;
+            letter-spacing: 2px;
+        }
+
+        .processor-core {
+            position: absolute;
+            left: 55px;
+            top: 43px;
+            width: 120px;
+            height: 70px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(0,234,255,.35);
+            border-radius: 7px;
+            color: rgba(90,255,210,.55);
+            font: 900 14px "Inter", sans-serif;
+            letter-spacing: 2px;
+            background: rgba(0,234,255,.025);
+            box-shadow: inset 0 0 20px rgba(0,234,255,.04);
+        }
+
+        .processor-core i {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 8px var(--cyan);
+        }
+
+        .processor-core i:nth-child(2) { left: 10px; top: 10px; }
+        .processor-core i:nth-child(3) { right: 10px; top: 10px; }
+        .processor-core i:nth-child(4) { left: 10px; bottom: 10px; }
+        .processor-core i:nth-child(5) { right: 10px; bottom: 10px; }
+
+        .chip-pin {
+            position: absolute;
+            width: 28px;
+            height: 1px;
+            background: var(--cyan);
+            box-shadow: 0 0 6px var(--cyan);
+            opacity: .5;
+        }
+
+        .p1 { left: 12px; top: 55px; }
+        .p2 { left: 12px; top: 91px; }
+        .p3 { right: 12px; top: 55px; }
+        .p4 { right: 12px; top: 91px; }
+
+        /* Generic logic-gate symbol */
+        .logic-symbol-bg {
+            position: absolute;
+            width: 220px;
+            height: 125px;
+            opacity: .48;
+            filter: drop-shadow(0 0 7px rgba(0,234,255,.3));
+        }
+
+        .and-gate {
+            right: 2%;
+            top: 11%;
+            transform: rotate(7deg) scale(.9);
+        }
+
+        .or-gate {
+            left: 1%;
+            bottom: 11%;
+            transform: rotate(-7deg) scale(.82);
+        }
+
+        .not-gate {
+            right: 5%;
+            bottom: 17%;
+            transform: rotate(5deg) scale(.75);
+        }
+
+        .logic-symbol-bg .wire {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan));
+            box-shadow: 0 0 7px var(--cyan);
+        }
+
+        .logic-symbol-bg .in1 { width: 62px; left: 0; top: 40px; }
+        .logic-symbol-bg .in2 { width: 62px; left: 0; top: 82px; }
+        .logic-symbol-bg .out { width: 55px; right: 0; top: 61px; }
+
+        .logic-symbol-bg .gate-shape {
+            position: absolute;
+            left: 57px;
+            top: 19px;
+            width: 105px;
+            height: 86px;
+            border: 3px solid var(--cyan);
+            border-left: 3px solid var(--cyan);
+            border-radius: 0 52px 52px 0;
+            background: rgba(0,234,255,.025);
+            box-shadow: 0 0 10px rgba(0,234,255,.22);
+        }
+
+        .or-gate .gate-shape {
+            border-radius: 55% 55% 55% 55% / 50% 50% 50% 50%;
+            transform: skewX(-8deg);
+            border-left-color: transparent;
+        }
+
+        .logic-symbol-bg .node {
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #dffff7;
+            box-shadow: 0 0 8px var(--cyan), 0 0 16px rgba(0,234,255,.6);
+        }
+
+        .logic-symbol-bg .n1 { left: -2px; top: 37px; }
+        .logic-symbol-bg .n2 { left: -2px; top: 79px; }
+        .logic-symbol-bg .n3 { right: -2px; top: 58px; }
+
+        /* NOT gate */
+        .not-gate .in { width: 58px; left: 0; top: 61px; }
+        .not-gate .gate-triangle {
+            position: absolute;
+            left: 55px;
+            top: 25px;
+            width: 0;
+            height: 0;
+            border-top: 36px solid transparent;
+            border-bottom: 36px solid transparent;
+            border-left: 75px solid rgba(0,234,255,.10);
+            filter: drop-shadow(0 0 4px var(--cyan));
+        }
+
+        .not-gate .gate-triangle::after {
+            content: "";
+            position: absolute;
+            left: -75px;
+            top: -36px;
+            width: 75px;
+            height: 72px;
+            clip-path: polygon(0 0, 100% 50%, 0 100%);
+            border: 2px solid var(--cyan);
+        }
+
+        .not-gate .bubble {
+            position: absolute;
+            left: 126px;
+            top: 54px;
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--cyan);
+        }
+
+        .not-gate .out {
+            width: 60px;
+            right: 0;
+            top: 61px;
+        }
+
+        /* MUX / flip-flop blocks */
+        .bg-circuit-block {
+            position: absolute;
+            width: 105px;
+            height: 90px;
+            border: 1px solid rgba(0,234,255,.17);
+            background: rgba(5,19,31,.42);
+            box-shadow: inset 0 0 20px rgba(0,234,255,.025);
+            color: rgba(0,234,255,.4);
+            text-align: center;
+            transform: rotate(-5deg);
+        }
+
+        .bg-circuit-block b {
+            display: block;
+            margin-top: 28px;
+            font: 900 17px "Inter", sans-serif;
+            letter-spacing: 2px;
+        }
+
+        .mux { right: 15%; top: 4%; }
+        .flipflop { left: 17%; bottom: 5%; transform: rotate(6deg); }
+
+        .bg-circuit-block span {
+            position: absolute;
+            left: -18px;
+            width: 18px;
+            height: 1px;
+            background: var(--cyan);
+            box-shadow: 0 0 6px var(--cyan);
+        }
+
+        .bg-circuit-block span:nth-of-type(1) { top: 25px; }
+        .bg-circuit-block span:nth-of-type(2) { top: 45px; }
+        .bg-circuit-block span:nth-of-type(3) { top: 65px; }
+
+        .bg-circuit-block em {
+            position: absolute;
+            right: 8px;
+            bottom: 7px;
+            font: 700 7px monospace;
+            opacity: .5;
+        }
+
+        .flipflop small {
+            position: absolute;
+            right: -20px;
+            font: 700 8px monospace;
+        }
+
+        .flipflop small:nth-of-type(1) { top: 30px; }
+        .flipflop small:nth-of-type(2) { top: 53px; }
+
+        .flipflop .clk {
+            bottom: 7px;
+            left: 0;
+            right: 0;
+            font: 700 7px monospace;
+        }
+
+        /* Binary streams */
+        .binary-stream {
+            position: absolute;
+            right: 17%;
+            bottom: 4%;
+            color: rgba(0,234,255,.18);
+            font: 700 9px monospace;
+            letter-spacing: 4px;
+            transform: rotate(-8deg);
+            animation: binaryGlow 4s ease-in-out infinite;
+        }
+
+        .stream2 {
+            left: 7%;
+            top: 4%;
+            right: auto;
+            transform: rotate(8deg);
+            animation-delay: 1.8s;
+        }
+
+        @keyframes binaryGlow {
+            0%, 100% { opacity: .35; }
+            50% { opacity: .8; }
+        }
+
+        /* Digital square-wave signal */
+        .signal-wave {
+            position: absolute;
+            width: 180px;
+            height: 55px;
+            left: 2%;
+            top: 50%;
+            opacity: .25;
+            background:
+                linear-gradient(var(--cyan),var(--cyan)) 0 35px/30px 2px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 30px 12px/2px 25px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 30px 12px/35px 2px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 65px 12px/2px 23px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 65px 35px/35px 2px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 100px 35px/2px 25px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 100px 10px/35px 2px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 135px 10px/2px 25px no-repeat,
+                linear-gradient(var(--cyan),var(--cyan)) 135px 35px/45px 2px no-repeat;
+            filter: drop-shadow(0 0 6px var(--cyan));
+        }
+
+        @media (max-width: 700px) {
+            .electronics-bg {
+                opacity: .34;
+            }
+
+            .processor-chip,
+            .mux,
+            .flipflop,
+            .binary-stream,
+            .stream2 {
+                opacity: .35;
+            }
+
+            .logic-symbol-bg {
+                opacity: .28;
+                transform: scale(.65);
+            }
+        }
+
+    
+        /* Larger, clearer registration fields */
+        .field label {
+            font-size: 12px;
+            letter-spacing: 1.6px;
+        }
+
+        input,
+        select {
+            height: 54px;
+            font-size: 16px;
+            padding: 0 17px;
+        }
+
+        input::placeholder {
+            font-size: 15px;
+        }
+
+        select {
+            font-size: 16px;
+        }
+
+        select option {
+            font-size: 16px;
+        }
+
+        @media (max-width: 560px) {
+            .field label {
+                font-size: 11px;
+            }
+
+            input,
+            select {
+                height: 52px;
+                font-size: 15px;
+            }
+
+            input::placeholder {
+                font-size: 14px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="electronics-bg" aria-hidden="true">
+        <div class="bg-chip processor-chip">
+            <div class="chip-title">DIGITAL PROCESSOR</div>
+            <div class="processor-core">
+                <span>CPU</span>
+                <i></i><i></i><i></i><i></i>
+            </div>
+            <div class="chip-pin p1"></div><div class="chip-pin p2"></div>
+            <div class="chip-pin p3"></div><div class="chip-pin p4"></div>
+        </div>
+
+        <div class="logic-symbol-bg and-gate">
+            <span class="wire in1"></span><span class="wire in2"></span>
+            <span class="gate-shape"></span><span class="wire out"></span>
+            <span class="node n1"></span><span class="node n2"></span>
+            <span class="node n3"></span>
+        </div>
+
+        <div class="logic-symbol-bg or-gate">
+            <span class="wire in1"></span><span class="wire in2"></span>
+            <span class="gate-shape"></span><span class="wire out"></span>
+            <span class="node n1"></span><span class="node n2"></span>
+            <span class="node n3"></span>
+        </div>
+
+        <div class="logic-symbol-bg not-gate">
+            <span class="wire in"></span><span class="gate-triangle"></span>
+            <span class="bubble"></span><span class="wire out"></span>
+        </div>
+
+        <div class="bg-circuit-block mux">
+            <b>MUX</b>
+            <span></span><span></span><span></span>
+            <em>01</em>
+        </div>
+
+        <div class="bg-circuit-block flipflop">
+            <b>JK</b>
+            <small>Q</small>
+            <small>Q̅</small>
+            <span class="clk">CLK</span>
+        </div>
+
+        <div class="binary-stream">1011&nbsp;&nbsp;0010&nbsp;&nbsp;1101&nbsp;&nbsp;0101</div>
+        <div class="binary-stream stream2">010&nbsp;101&nbsp;111&nbsp;001&nbsp;100</div>
+        <div class="signal-wave"></div>
+    </div>
+
+
+    <div class="circuit-art" aria-hidden="true">
+        <div class="light-orb orb1"></div>
+        <div class="light-orb orb2"></div>
+
+        <div class="trace t1"></div>
+        <div class="trace t2"></div>
+        <div class="trace t3"></div>
+        <div class="trace t4"></div>
+
+        <div class="chip c1"></div>
+        <div class="chip c2"></div>
+        <div class="chip c3"></div>
+    </div>
+
+
+
+<div class="card">
+        <div class="light-surface"></div>
+        <div class="edge-light"></div>
+
+
+    <!-- LOGO -->
+
+    <div class="logo" aria-label="Digital logic gate">
+            <svg class="gate-symbol" viewBox="0 0 220 140" role="img" aria-hidden="true">
+                <defs>
+                    <linearGradient id="cleanGate" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#63ffd3"/>
+                        <stop offset="45%" stop-color="#00eaff"/>
+                        <stop offset="100%" stop-color="#4c7dff"/>
+                    </linearGradient>
+                    <filter id="cleanGlow" x="-40%" y="-40%" width="180%" height="180%">
+                        <feGaussianBlur stdDeviation="2.5" result="b"/>
+                        <feMerge>
+                            <feMergeNode in="b"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+
+                <!-- PCB input traces -->
+                <path class="gate-wire" d="M10 42 H55"/>
+                <path class="gate-wire" d="M10 98 H55"/>
+
+                <!-- Input terminals -->
+                <circle class="gate-node" cx="10" cy="42" r="4"/>
+                <circle class="gate-node" cx="10" cy="98" r="4"/>
+
+                <!-- Clean AND gate -->
+                <path class="gate-body"
+                      d="M55 25
+                         H91
+                         C132 25 160 48 160 70
+                         C160 92 132 115 91 115
+                         H55
+                         Z"/>
+
+                <!-- Small gate accent -->
+                <path class="gate-accent" d="M69 28 V112"/>
+
+                <!-- Output -->
+                <path class="gate-wire" d="M160 70 H207"/>
+                <circle class="gate-node output" cx="207" cy="70" r="5"/>
+
+                <!-- Active signal -->
+                <circle class="signal-dot" cx="55" cy="42" r="3"/>
+                <circle class="signal-dot signal-two" cx="160" cy="70" r="3"/>
+            </svg>
+        </div>
+
+
+    <!-- TITLE -->
+
+    <h1>
+
+        Logic Hunt
+
+    </h1>
+
+
+    <div class="divider"></div>
+
+
+    <p class="sub">
+        ⚡ A battle on digital thinking! ⚡
+    </p>
+
+
+    <!-- ERROR -->
+
+    <div
+        class="error"
+        id="error">
+
+    </div>
+
+
+    <!-- SUCCESS -->
+
+    <div
+        class="success"
+        id="success">
+
+    </div>
+
+
+    <!-- FORM -->
+
+    <div class="form">
+
+        <!-- ROLL NUMBER -->
+        <div class="field">
+            <label>ROLL NUMBER</label>
+            <input id="rollNo" type="text" placeholder="Example: 24A31A04O1" autocomplete="off" maxlength="30">
+        </div>
+
+        <!-- NAME -->
+        <div class="field">
+            <label>FULL NAME</label>
+            <input id="name" type="text" placeholder="Enter your full name" autocomplete="name" maxlength="100">
+        </div>
+
+        <!-- YEAR -->
+        <div class="field">
+            <label>YEAR</label>
+            <select id="year">
+                <option value="">Select year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+            </select>
+        </div>
+
+        <!-- SECTION -->
+        <div class="field">
+            <label>SECTION</label>
+            <select id="section">
+                <option value="">Select section</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            </select>
+        </div>
+
+        <!-- REGISTER BUTTON -->
+        <button id="registerBtn">REGISTER ⚡</button>
+
+    </div>
+
+
+    <!-- LOGIN LINK -->
+
+    <div class="link">
+
+        Already registered?
+
+        <a href="/student/login">
+
+            LOGIN
+
+        </a>
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const registerBtn =
+    document.getElementById(
+        "registerBtn"
+    );
+
+
+const errorBox =
+    document.getElementById(
+        "error"
+    );
+
+
+const successBox =
+    document.getElementById(
+        "success"
+    );
+
+
+/* =====================================================
+   SHOW ERROR
+===================================================== */
+
+function showError(message) {
+
+    errorBox.textContent =
+        message;
+
+    errorBox.classList.add(
+        "show"
+    );
+
+}
+
+
+/* =====================================================
+   HIDE ERROR
+===================================================== */
+
+function hideError() {
+
+    errorBox.textContent =
+        "";
+
+    errorBox.classList.remove(
+        "show"
+    );
+
+}
+
+
+/* =====================================================
+   SHOW SUCCESS
+===================================================== */
+
+function showSuccess(message) {
+
+    successBox.textContent =
+        message;
+
+    successBox.classList.add(
+        "show"
+    );
+
+}
+
+
+/* =====================================================
+   HIDE SUCCESS
+===================================================== */
+
+function hideSuccess() {
+
+    successBox.textContent =
+        "";
+
+    successBox.classList.remove(
+        "show"
+    );
+
+}
+
+
+/* =====================================================
+   REGISTER
+===================================================== */
+
+registerBtn.addEventListener(
+    "click",
+    async function () {
+
+
+        hideError();
+
+        hideSuccess();
+
+
+        /* ---------------------------------------------
+           GET FORM VALUES
+        --------------------------------------------- */
+
+        const rollNo =
+            document
+            .getElementById("rollNo")
+            .value
+            .trim()
+            .toUpperCase();
+
+
+        const name =
+            document
+            .getElementById("name")
+            .value
+            .trim();
+
+
+        const section =
+            document
+            .getElementById("section")
+            .value
+            .trim()
+            .toUpperCase();
+
+
+        const year =
+            document
+            .getElementById("year")
+            .value;
+
+
+        /* ---------------------------------------------
+           VALIDATION
+        --------------------------------------------- */
+
+        if (!rollNo) {
+
+            showError(
+                "Please enter your roll number."
+            );
+
+            return;
+
+        }
+
+
+        if (!name) {
+
+            showError(
+                "Please enter your full name."
+            );
+
+            return;
+
+        }
+
+
+        if (!section) {
+
+            showError(
+                "Please enter your section."
+            );
+
+            return;
+
+        }
+
+
+        if (!year) {
+
+            showError(
+                "Please select your year."
+            );
+
+            return;
+
+        }
+
+
+        /* ---------------------------------------------
+           DISABLE BUTTON
+        --------------------------------------------- */
+
+        registerBtn.disabled =
+            true;
+
+        registerBtn.textContent =
+            "REGISTERING...";
+
+
+        try {
+
+
+            /* -----------------------------------------
+               SEND DATA TO FLASK
+            ----------------------------------------- */
+
+            const response =
+                await fetch(
+                    "/api/student/register",
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                roll_no:
+                                    rollNo,
+
+                                name:
+                                    name,
+
+                                section:
+                                    section,
+
+                                year:
+                                    year
+
+                            })
+
+                    }
+                );
+
+
+            /* -----------------------------------------
+               READ RESPONSE
+            ----------------------------------------- */
+
+            const data =
+                await response.json();
+
+
+            /* -----------------------------------------
+               HANDLE ERROR
+            ----------------------------------------- */
+
+            if (!response.ok) {
+
+                throw new Error(
+
+                    data.error ||
+
+                    "Registration failed."
+
+                );
+
+            }
+
+
+            /* -----------------------------------------
+               SUCCESS
+            ----------------------------------------- */
+
+            showSuccess(
+                "🎯 Profile created successfully! Redirecting..."
+            );
+
+
+            registerBtn.textContent =
+                "✓ SUCCESS ✓";
+
+
+            /*
+             * Flask creates the student session
+             * after successful registration.
+             *
+             * Therefore we can directly
+             * open the dashboard.
+             */
+
+            setTimeout(
+                function () {
+
+                    window.location.href =
+                        "/student/dashboard";
+
+                },
+                700
+            );
+
+
+        }
+        catch (error) {
+
+
+            console.error(
+                "REGISTRATION ERROR:",
+                error
+            );
+
+
+            showError(
+                error.message ||
+                "Something went wrong."
+            );
+
+
+            registerBtn.disabled =
+                false;
+
+
+            registerBtn.textContent =
+                "REGISTER ⚡";
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   ENTER KEY SUPPORT
+===================================================== */
+
+document
+.querySelectorAll(
+    "input, select"
+)
+.forEach(
+    function (element) {
+
+        element.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Enter"
+                ) {
+
+                    event.preventDefault();
+
+                    registerBtn.click();
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+/* =====================================================
+   ROLL NUMBER AUTO FORMAT
+===================================================== */
+
+document
+.getElementById("rollNo")
+.addEventListener(
+    "input",
+    function () {
+
+        this.value =
+            this.value
+            .toUpperCase()
+            .replace(
+                /\s+/g,
+                ""
+            );
+
+    }
+);
+
+
+/* =====================================================
+   SECTION AUTO FORMAT
+===================================================== */
+
+document
+.getElementById("section")
+.addEventListener(
+    "change",
+    function () {
+        this.value = this.value.toUpperCase();
+    }
+);
+
+
+/* =====================================================
+   INTERACTIVE 3D TILT
+===================================================== */
+
+const card = document.querySelector('.card');
+
+document.addEventListener('mousemove', (e) => {
+
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+
+    const rotateX = (mouseY - centerY) / 20;
+    const rotateY = (centerX - mouseX) / 20;
+
+    card.style.transform = `
+        rotateX(${rotateX * 0.3}deg)
+        rotateY(${rotateY * 0.3}deg)
+        translateZ(8px)
+    `;
+
+    card.style.setProperty('--light-x', `${(mouseX / window.innerWidth) * 100}%`);
+    card.style.setProperty('--light-y', `${(mouseY / window.innerHeight) * 100}%`);
+
+});
+
+document.addEventListener('mouseleave', () => {
+
+    card.style.transform = 'rotateX(0) rotateY(0) translateZ(0)';
+
+});
+
+</script>
+
+
+</body>
+
+</html>
