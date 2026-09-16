@@ -1,5 +1,9 @@
 
 
+
+
+
+
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
 from supabase import create_client, Client
@@ -38,13 +42,40 @@ def current_student():
     response = (
         supabase
         .table("students")
-        .select("id,roll_no,name,section,year")
+        .select("id,roll_no,name,branch,section,year")
         .eq("id", student_id)
         .limit(1)
         .execute()
     )
 
     return response.data[0] if response.data else None
+
+
+def student_qualified_for_quiz(quiz_id, student_id):
+    """Round 1 is open to everyone; Round 2+ requires a qualifier row."""
+    response = (
+        supabase.table("quizzes")
+        .select("round_number")
+        .eq("id", quiz_id)
+        .limit(1)
+        .execute()
+    )
+    if not response.data:
+        return False
+
+    round_number = int(response.data[0].get("round_number") or 1)
+    if round_number == 1:
+        return True
+
+    qualifier = (
+        supabase.table("quiz_qualifiers")
+        .select("id")
+        .eq("quiz_id", quiz_id)
+        .eq("student_id", student_id)
+        .limit(1)
+        .execute()
+    )
+    return bool(qualifier.data)
 
 
 def student_required(function):
@@ -124,23 +155,26 @@ def results_page():
 # Roll number + year uniquely identifies the student.
 # ============================================================
 
+# ============================================================
+# STUDENT LOGIN
+# Roll number uniquely identifies the student.
+# ============================================================
+
 @app.route("/api/student/login", methods=["POST"])
 @handle_supabase_error
 def student_login():
     data = request.get_json(silent=True) or {}
 
     roll_no = str(data.get("roll_no", "")).strip().upper()
-    year = str(data.get("year", "")).strip()
 
-    if not roll_no or not year:
-        return api_error("Roll number and year are required.")
+    if not roll_no:
+        return api_error("Roll number is required.")
 
     response = (
         supabase
         .table("students")
-        .select("id,roll_no,name,section,year")
+        .select("id,roll_no,name,branch,section,year")
         .eq("roll_no", roll_no)
-        .eq("year", year)
         .limit(1)
         .execute()
     )
@@ -154,6 +188,7 @@ def student_login():
 
     student = response.data[0]
 
+    # Create login session
     session["student_id"] = student["id"]
     session["roll_no"] = student["roll_no"]
     session["year"] = student["year"]
@@ -162,7 +197,6 @@ def student_login():
         "success": True,
         "student": student
     })
-
 
 # ============================================================
 # STUDENT REGISTRATION
@@ -177,18 +211,22 @@ def student_register():
 
     roll_no = str(data.get("roll_no", "")).strip().upper()
     name = str(data.get("name", "")).strip()
+    branch = str(data.get("branch", "")).strip().upper()
     section = str(data.get("section", "")).strip().upper()
     year = str(data.get("year", "")).strip()
 
-    if not roll_no or not name or not section or not year:
-        return api_error("Roll number, name, section and year are required.")
+    # Validate all required details
+    if not roll_no or not name or not branch or not section or not year:
+        return api_error(
+            "Roll number, name, branch, section and year are required."
+        )
 
+    # Check duplicate using ONLY roll number
     existing = (
         supabase
         .table("students")
-        .select("id,roll_no,name,section,year")
+        .select("id,roll_no,name,branch,section,year")
         .eq("roll_no", roll_no)
-        .eq("year", year)
         .limit(1)
         .execute()
     )
@@ -196,27 +234,34 @@ def student_register():
     if existing.data:
         return jsonify({
             "success": False,
-            "error": "This roll number is already registered for this year. Please login."
+            "error": "This roll number is already registered. Please login."
         }), 409
 
+    # Student data
     student_data = {
         "roll_no": roll_no,
         "name": name,
+        "branch": branch,
         "section": section,
         "year": year,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
 
+    # Insert student
     response = (
         supabase
         .table("students")
         .insert(student_data)
-        .select("id,roll_no,name,section,year")
+        .select("id,roll_no,name,branch,section,year")
         .execute()
     )
 
+    if not response.data:
+        return api_error("Failed to register student.", 500)
+
     student = response.data[0]
 
+    # Automatically login the student after registration
     session["student_id"] = student["id"]
     session["roll_no"] = student["roll_no"]
     session["year"] = student["year"]
@@ -225,8 +270,6 @@ def student_register():
         "success": True,
         "student": student
     })
-
-
 # ============================================================
 # CURRENT STUDENT
 # ============================================================
@@ -264,7 +307,7 @@ def student_logout_page():
 
 
 # ============================================================
-# DASHBOARD - AVAILABLE QUIZZES FOR STUDENT YEAR
+# DASHBOARD - ALL AVAILABLE QUIZZES
 # ============================================================
 
 @app.route("/api/student/quizzes", methods=["GET"])
@@ -279,14 +322,29 @@ def get_student_quizzes():
     response = (
         supabase
         .table("quizzes")
-        .select("id,title,description,status,year,created_at,winners_revealed,leaderboard_revealed,results_revealed")
-        .eq("status", "active")
-        .eq("year", student["year"])
+        .select("id,title,description,status,created_at,round_number,duration_minutes,winners_revealed,leaderboard_revealed,results_revealed")
+        .in_("status", ["running", "completed"])
         .order("created_at", desc=True)
         .execute()
     )
 
     quizzes = response.data or []
+
+    # Round 1 is visible to everyone. Round 2+ is visible only to
+    # students explicitly qualified through quiz_qualifiers.
+    qualified_ids_response = (
+        supabase.table("quiz_qualifiers")
+        .select("quiz_id")
+        .eq("student_id", student["id"])
+        .execute()
+    )
+    qualified_quiz_ids = {str(row.get("quiz_id")) for row in (qualified_ids_response.data or [])}
+
+    quizzes = [
+        quiz for quiz in quizzes
+        if int(quiz.get("round_number") or 1) == 1
+        or str(quiz.get("id")) in qualified_quiz_ids
+    ]
 
     # Mark whether this student already attempted each quiz.
     for quiz in quizzes:
@@ -311,7 +369,7 @@ def get_student_quizzes():
 
 # ============================================================
 # GET ONE QUIZ
-# Only quizzes belonging to student's year are accessible.
+# All running quizzes are accessible to every student.
 # ============================================================
 
 @app.route("/api/student/quiz/<quiz_id>", methods=["GET"])
@@ -344,21 +402,33 @@ def get_student_quiz(quiz_id):
     quiz_response = (
         supabase
         .table("quizzes")
-        .select("id,title,description,status,year,winners_revealed,leaderboard_revealed,results_revealed")
+        .select("id,title,description,status,round_number,duration_minutes,winners_revealed,leaderboard_revealed,results_revealed")
         .eq("id", quiz_id)
-        .eq("status", "active")
-        .eq("year", student["year"])
+        .eq("status", "running")
         .limit(1)
         .execute()
     )
 
     if not quiz_response.data:
         return api_error(
-            "Quiz is not active or is not available for your year.",
+            "Quiz is not active or is not available.",
             404
         )
 
     quiz = quiz_response.data[0]
+
+    # Round 1 is open. Round 2+ requires explicit qualification.
+    if int(quiz.get("round_number") or 1) > 1:
+        qualifier = (
+            supabase.table("quiz_qualifiers")
+            .select("id")
+            .eq("quiz_id", quiz_id)
+            .eq("student_id", student["id"])
+            .limit(1)
+            .execute()
+        )
+        if not qualifier.data:
+            return api_error("You are not qualified for this round.", 403)
 
     questions_response = (
         supabase
@@ -422,25 +492,37 @@ def submit_student_quiz():
     if not isinstance(answers, dict):
         return api_error("Answers must be an object.")
 
-    # Verify quiz belongs to student's year and is active.
+    # Verify quiz is running. Running quizzes are available to every student.
     quiz_response = (
         supabase
         .table("quizzes")
-        .select("id,title,status,year,results_revealed")
+        .select("id,title,status,round_number,results_revealed")
         .eq("id", quiz_id)
-        .eq("status", "active")
-        .eq("year", student["year"])
+        .eq("status", "running")
         .limit(1)
         .execute()
     )
 
     if not quiz_response.data:
         return api_error(
-            "Quiz is not active or is not available for your year.",
+            "Quiz is not running or is not available.",
             403
         )
 
     quiz = quiz_response.data[0]
+
+    # Round 1 is open. Round 2+ requires explicit qualification.
+    if int(quiz.get("round_number") or 1) > 1:
+        qualifier = (
+            supabase.table("quiz_qualifiers")
+            .select("id")
+            .eq("quiz_id", quiz_id)
+            .eq("student_id", student["id"])
+            .limit(1)
+            .execute()
+        )
+        if not qualifier.data:
+            return api_error("You are not qualified for this round.", 403)
 
     # Prevent second attempt.
     existing = (
@@ -494,6 +576,7 @@ def submit_student_quiz():
         "student_id": student["id"],
         "roll_no": student["roll_no"],
         "name": student["name"],
+        "branch": student["branch"],
         "section": student["section"],
         "year": student["year"],
         "answers": clean_answers,
@@ -602,11 +685,10 @@ def get_leaderboard(quiz_id):
         supabase
         .table("quizzes")
         .select(
-            "id,title,year,winners_revealed,"
+            "id,title,winners_revealed,"
             "leaderboard_revealed,results_revealed"
         )
         .eq("id", quiz_id)
-        .eq("year", student["year"])
         .limit(1)
         .execute()
     )
@@ -689,11 +771,10 @@ def get_winners(quiz_id):
         supabase
         .table("quizzes")
         .select(
-            "id,title,year,winners_revealed,"
+            "id,title,winners_revealed,"
             "leaderboard_revealed,results_revealed"
         )
         .eq("id", quiz_id)
-        .eq("year", student["year"])
         .limit(1)
         .execute()
     )
@@ -798,10 +879,9 @@ def get_student_script(quiz_id):
         supabase
         .table("quizzes")
         .select(
-            "id,title,year,results_revealed"
+            "id,title,results_revealed"
         )
         .eq("id", quiz_id)
-        .eq("year", student["year"])
         .limit(1)
         .execute()
     )
