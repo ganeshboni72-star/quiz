@@ -1,595 +1,763 @@
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-<meta charset="UTF-8"> 
-<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-<title>Quiz Arena | Login</title> 
-<style>
 
-*{box-sizing:border-box;margin:0;padding:0}
+<!DOCTYPE html>
+<html lang="en">
 
-:root{
-    --bg:#030911;
-    --panel:#071725;
-    --panel2:#0a1e2d;
-    --border:rgba(92,224,255,.18);
-    --text:#f3fcff;
-    --muted:#86a9b8;
-    --cyan:#43e7ff;
-    --cyan2:#00b8ff;
-    --green:#3dffbd;
-    --purple:#8d6cff;
-;--blue:#247cff}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineers Day Quiz | Login</title>
 
-html,body{
-    min-height:100%;
-}
-
-body{
-    min-height:100vh;
-    position:relative;
-    overflow:hidden;
-    font-family:Arial,sans-serif;
-    color:var(--text);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-    background:
-        radial-gradient(circle at 15% 15%,rgba(67,231,255,.13),transparent 26%),
-        radial-gradient(circle at 85% 80%,rgba(61,255,189,.08),transparent 25%),
-        radial-gradient(circle at 50% 100%,rgba(141,108,255,.10),transparent 35%),
-        #030911;
-}
-
-/* Electronic PCB background */
-body:before{
-    content:"";
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    opacity:.32;
-    background-image:
-        linear-gradient(rgba(67,231,255,.045) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(67,231,255,.045) 1px,transparent 1px);
-    background-size:42px 42px;
-    mask-image:linear-gradient(to bottom,black,transparent 92%);
-}
-
-body:after{
-    content:"";
-    position:fixed;
-    width:420px;
-    height:420px;
-    left:-180px;
-    bottom:-210px;
-    border:1px solid rgba(67,231,255,.14);
-    border-radius:50%;
-    box-shadow:
-        0 0 0 28px rgba(67,231,255,.025),
-        0 0 0 56px rgba(67,231,255,.018),
-        0 0 70px rgba(67,231,255,.08);
-    pointer-events:none;
-}
-
-.card{
-    position:relative;
-    z-index:2;
-    width:100%;
-    max-width:480px;
-    padding:42px 40px 34px;
-    border:1px solid rgba(67,231,255,.20);
-    border-radius:26px;
-    background:
-        linear-gradient(145deg,rgba(9,30,45,.94),rgba(3,13,22,.96));
-    backdrop-filter:blur(22px);
-    box-shadow:
-        0 35px 100px rgba(0,0,0,.58),
-        0 0 45px rgba(67,231,255,.08),
-        inset 1px 1px 0 rgba(255,255,255,.06);
-    overflow:hidden;
-}
-
-.card:before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:10%;
-    right:10%;
-    height:1px;
-    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
-    box-shadow:0 0 18px var(--cyan);
-}
-
-.card:after{
-    content:"";
-    position:absolute;
-    width:170px;
-    height:170px;
-    right:-95px;
-    top:-95px;
-    border:1px solid rgba(141,108,255,.18);
-    border-radius:50%;
-    box-shadow:
-        0 0 0 15px rgba(141,108,255,.025),
-        0 0 35px rgba(141,108,255,.08);
-    pointer-events:none;
-}
-
-/* =========================================
-           CLEAN LOGIC-GATE EMBLEM
-        ========================================= */
-
-        .logo {
-            width: 150px;
-            height: 105px;
-            margin: 0 auto 22px;
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
             padding: 0;
+        }
+
+        :root {
+            --primary-dark: #0f172a;
+            --primary-darker: #030712;
+            --accent-purple: #a855f7;
+            --accent-orange: #f59e0b;
+            --accent-cyan: #06b6d4;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --bg-panel: rgba(15, 23, 42, 0.8);
+            --border-color: rgba(168, 85, 247, 0.2);
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        html {
+            min-height: 100%;
+            background: var(--primary-darker);
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            color: var(--text-primary);
+            background: linear-gradient(
+                135deg,
+                #0f172a 0%,
+                #1e1b4b 50%,
+                #0f172a 100%
+            );
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
             position: relative;
-            transform: translateZ(48px);
-            transform-style: preserve-3d;
-            border: 0;
-            border-radius: 0;
-            background: transparent;
-            box-shadow: none;
-            transition: transform .35s cubic-bezier(.2,.8,.2,1);
+            overflow-x: hidden;
         }
 
-        /* Soft circular aura behind the gate */
-        .logo::before {
+        /* Animated gradient orbs */
+        body::before {
             content: "";
-            position: absolute;
-            width: 112px;
-            height: 112px;
-            border-radius: 50%;
-            background: radial-gradient(
-                circle,
-                rgba(0,234,255,.13) 0%,
-                rgba(0,234,255,.045) 38%,
-                transparent 72%
-            );
-            filter: blur(3px);
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(168, 85, 247, 0.15), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(245, 158, 11, 0.12), transparent 50%),
+                radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.1), transparent 50%);
             pointer-events: none;
+            z-index: 0;
+            animation: gradientShift 8s ease-in-out infinite;
         }
 
-        /* Tiny PCB indicator */
-        .logo::after {
+        @keyframes gradientShift {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        /* Subtle grid pattern */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(168, 85, 247, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(168, 85, 247, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card {
+            background: var(--bg-panel);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                0 0 1px 1px rgba(255, 255, 255, 0.05) inset;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(168, 85, 247, 0.4);
+            box-shadow:
+                0 25px 80px rgba(168, 85, 247, 0.1),
+                0 0 1px 1px rgba(255, 255, 255, 0.08) inset;
+        }
+
+        /* Header section */
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo-wrapper {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #a855f7 0%, #f59e0b 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 900;
+            color: white;
+            box-shadow:
+                0 15px 40px rgba(168, 85, 247, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+            letter-spacing: -2px;
+        }
+
+        .card:hover .logo {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #a855f7 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .organized-by {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #a855f7 0%, #f59e0b 100%);
+            margin: 20px auto 0;
+            border-radius: 2px;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+        }
+
+        /* Form section */
+        .form {
+            margin-top: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: var(--text-muted);
+        }
+
+        input:hover,
+        select:hover {
+            border-color: rgba(168, 85, 247, 0.4);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent-purple);
+            background: rgba(168, 85, 247, 0.05);
+            box-shadow:
+                0 0 0 3px rgba(168, 85, 247, 0.1),
+                0 0 0 1px rgba(168, 85, 247, 0.3);
+        }
+
+        select {
+            cursor: pointer;
+            padding-right: 12px;
+        }
+
+        select option {
+            background: var(--primary-dark);
+            color: var(--text-primary);
+        }
+
+        /* Submit button */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #a855f7 0%, #f59e0b 100%);
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow:
+                0 10px 30px rgba(168, 85, 247, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            font-family: inherit;
+        }
+
+        .btn::before {
             content: "";
             position: absolute;
-            right: 10px;
-            top: 15px;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #dffff7;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
             box-shadow:
-                0 0 7px #fff,
-                0 0 15px var(--cyan),
-                0 0 25px rgba(0,234,255,.8);
-            animation: gateLed 1.7s ease-in-out infinite;
+                0 15px 40px rgba(168, 85, 247, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.15);
         }
 
-        .logo:hover {
-            transform: translateZ(62px) scale(1.035);
+        .btn:hover:not(:disabled)::before {
+            transform: translateX(100%);
         }
 
-        .gate-symbol {
-            width: 148px;
-            height: 96px;
-            overflow: visible;
-            position: relative;
-            z-index: 2;
-            filter:
-                drop-shadow(0 0 3px rgba(0,234,255,.9))
-                drop-shadow(0 0 9px rgba(0,234,255,.35));
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
         }
 
-        .gate-wire {
-            fill: none;
-            stroke: url(#cleanGate);
-            stroke-width: 5;
-            stroke-linecap: round;
-            filter: url(#cleanGlow);
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
-        .gate-body {
-            fill: rgba(0,234,255,.035);
-            stroke: url(#cleanGate);
-            stroke-width: 5;
-            stroke-linejoin: round;
-            filter: url(#cleanGlow);
+        /* Messages */
+        .message {
+            margin-top: 20px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            font-weight: 500;
+            display: none;
+            animation: slideIn 0.3s ease-out;
         }
 
-        .gate-accent {
-            fill: none;
-            stroke: rgba(108,255,218,.42);
-            stroke-width: 2;
-            stroke-linecap: round;
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .gate-node {
-            fill: #d8fff5;
-            stroke: var(--cyan);
-            stroke-width: 2;
-            filter: url(#cleanGlow);
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
         }
 
-        .gate-node.output {
-            fill: #fff;
+        .message.show {
+            display: block;
         }
 
-        .signal-dot {
-            fill: #fff;
-            filter: url(#cleanGlow);
-            animation: signalMove 1.8s linear infinite;
+        /* Footer link */
+        .footer-link {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
-        .signal-two {
-            animation-delay: .9s;
+        .footer-link a {
+            color: var(--accent-purple);
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.2s ease;
         }
 
-        @keyframes signalMove {
-            0% { opacity: 0; transform: translateX(-8px); }
-            18% { opacity: 1; }
-            42% { opacity: 1; transform: translateX(20px); }
-            55%, 100% { opacity: 0; transform: translateX(42px); }
+        .footer-link a:hover {
+            color: var(--accent-orange);
         }
 
-        @keyframes gateLed {
-            0%, 100% { opacity: .45; }
-            50% { opacity: 1; }
-        }
+        /* Tablet & Large Phones */
+        @media (max-width: 768px) {
+            .container {
+                max-width: 95%;
+            }
 
-        @media (max-width: 560px) {
+            .card {
+                padding: 40px 28px;
+                border-radius: 18px;
+            }
+
+            h1 {
+                font-size: 32px;
+            }
+
             .logo {
-                width: 130px;
-                height: 94px;
+                width: 75px;
+                height: 75px;
+                font-size: 30px;
             }
 
-            .gate-symbol {
-                width: 128px;
-                height: 84px;
+            input,
+            select {
+                padding: 14px 16px;
+                font-size: 16px;
+                height: 48px;
+            }
+
+            .btn {
+                padding: 14px;
+                font-size: 12px;
+                height: 48px;
             }
         }
 
-h1{
-    position:relative;
-    z-index:2;
-    text-align:center;
-    font-size:31px;
-    line-height:1.15;
-    letter-spacing:-.6px;
-    color:#f4feff;
-    text-shadow:0 0 18px rgba(67,231,255,.15);
-}
+        /* Medium Phones */
+        @media (max-width: 600px) {
+            body {
+                padding: 20px 12px;
+                align-items: center;
+                min-height: 100vh;
+            }
 
-.sub{
-    position:relative;
-    z-index:2;
-    text-align:center;
-    color:var(--muted);
-    font-size:12px;
-    line-height:1.5;
-    margin-top:9px;
-}
+            .container {
+                width: 100%;
+                max-width: none;
+            }
 
-.form{
-    position:relative;
-    z-index:2;
-    margin-top:29px;
-}
+            .card {
+                padding: 32px 24px;
+                border-radius: 16px;
+                width: 100%;
+            }
 
-.field{
-    margin-bottom:17px;
-}
+            .header {
+                margin-bottom: 28px;
+            }
 
-.field label{
-    display:block;
-    margin-bottom:8px;
-    font-size:10px;
-    font-weight:900;
-    letter-spacing:1px;
-    color:#bfe4ed;
-}
+            .logo-wrapper {
+                margin-bottom: 16px;
+            }
 
-input,select{
-    display:block;
-    width:100%;
-    height:52px;
-    padding:0 15px;
-    border:1px solid rgba(67,231,255,.16);
-    outline:none;
-    border-radius:12px;
-    color:#effcff;
-    background:
-        linear-gradient(145deg,rgba(5,23,35,.96),rgba(3,12,20,.96));
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.035),
-        0 8px 18px rgba(0,0,0,.18);
-    transition:
-        border-color .25s ease,
-        box-shadow .25s ease,
-        transform .25s ease;
-}
+            .logo {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
 
-input::placeholder{
-    color:#557383;
-}
+            h1 {
+                font-size: 28px;
+                letter-spacing: 0;
+            }
 
-input:hover,select:hover{
-    border-color:rgba(67,231,255,.32);
-    box-shadow:
-        0 0 18px rgba(67,231,255,.07),
-        inset 0 1px 0 rgba(255,255,255,.04);
-}
+            .tagline {
+                font-size: 12px;
+                margin-bottom: 10px;
+            }
 
-input:focus,select:focus{
-    border-color:var(--cyan);
-    transform:translateY(-1px);
-    box-shadow:
-        0 0 0 3px rgba(67,231,255,.08),
-        0 0 24px rgba(67,231,255,.14),
-        inset 0 0 14px rgba(67,231,255,.035);
-}
+            .organized-by {
+                font-size: 10px;
+            }
 
-select{
-    cursor:pointer;
-}
+            .divider {
+                width: 50px;
+                height: 2px;
+                margin: 16px auto 0;
+            }
 
-select option{
-    color:white;
-    background:#071725;
-}
+            .form {
+                margin-top: 24px;
+            }
 
-button{
-    position:relative;
-    overflow:hidden;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    width:100%;
-    height:53px;
-    border:1px solid rgba(67,231,255,.42);
-    border-radius:12px;
-    color:#03131b;
-    background:linear-gradient(135deg,#b7faff,#43e7ff 48%,#3dffbd);
-    font-weight:950;
-    letter-spacing:.5px;
-    cursor:pointer;
-    margin-top:5px;
-    box-shadow:
-        0 12px 28px rgba(0,190,255,.18),
-        0 0 25px rgba(67,231,255,.12),
-        inset 2px 2px 5px rgba(255,255,255,.65),
-        inset -2px -2px 5px rgba(0,100,120,.22);
-    transition:
-        transform .22s ease,
-        box-shadow .22s ease,
-        filter .22s ease;
-}
+            .form-group {
+                margin-bottom: 20px;
+            }
 
-button:before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:-100%;
-    width:55%;
-    height:100%;
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
-    transform:skewX(-20deg);
-    transition:left .55s ease;
-}
+            label {
+                font-size: 10px;
+                letter-spacing: 0.8px;
+                margin-bottom: 8px;
+            }
 
-button:hover{
-    transform:translateY(-3px);
-    filter:brightness(1.08);
-    box-shadow:
-        0 17px 35px rgba(0,190,255,.25),
-        0 0 34px rgba(67,231,255,.22),
-        inset 2px 2px 6px rgba(255,255,255,.72),
-        inset -2px -2px 6px rgba(0,100,120,.25);
-}
+            input,
+            select {
+                padding: 13px 14px;
+                font-size: 16px;
+                height: 46px;
+                border-radius: 10px;
+            }
 
-button:hover:before{
-    left:145%;
-}
+            .btn {
+                padding: 13px;
+                font-size: 12px;
+                height: 46px;
+                margin-top: 6px;
+            }
 
-button:active{
-    transform:translateY(0) scale(.985);
-}
+            .footer-link {
+                margin-top: 24px;
+                font-size: 11px;
+            }
+        }
 
-button:disabled{
-    opacity:.62;
-    cursor:not-allowed;
-    transform:none;
-}
+        /* Small Phones */
+        @media (max-width: 480px) {
+            body {
+                padding: 20px 10px;
+                align-items: center;
+            }
 
-.error{
-    display:none;
-    margin-top:15px;
-    padding:12px 13px;
-    border-radius:10px;
-    color:#ff9fac;
-    background:rgba(255,72,100,.07);
-    border:1px solid rgba(255,93,115,.22);
-    font-size:11px;
-    line-height:1.5;
-    font-weight:800;
-    box-shadow:0 0 18px rgba(255,70,100,.05);
-}
+            .card {
+                padding: 26px 18px;
+                border-radius: 14px;
+            }
 
-.error.show{
-    display:block;
-}
+            .header {
+                margin-bottom: 24px;
+            }
 
-.link{
-    position:relative;
-    z-index:2;
-    text-align:center;
-    margin-top:20px;
-    color:#7795a3;
-    font-size:11px;
-    line-height:1.5;
-}
+            .logo-wrapper {
+                margin-bottom: 14px;
+            }
 
-.link a{
-    color:#72eaff;
-    text-decoration:none;
-    font-weight:900;
-    transition:color .2s ease,text-shadow .2s ease;
-}
+            .logo {
+                width: 64px;
+                height: 64px;
+                font-size: 26px;
+                border-radius: 12px;
+            }
 
-.link a:hover{
-    color:#b9f8ff;
-    text-decoration:none;
-    text-shadow:0 0 12px rgba(67,231,255,.55);
-}
+            h1 {
+                font-size: 24px;
+                margin-bottom: 6px;
+            }
 
-@media(max-width:560px){
-    body{
-        padding:15px 11px;
-        overflow:auto;
-    }
+            .tagline {
+                font-size: 11px;
+                margin-bottom: 8px;
+            }
 
-    .card{
-        max-width:100%;
-        padding:30px 20px 25px;
-        border-radius:21px;
-    }
+            .organized-by {
+                font-size: 9px;
+            }
 
-    .logo{
-        width:62px;
-        height:62px;
-        font-size:25px;
-        border-radius:18px;
-    }
+            .divider {
+                width: 45px;
+                height: 2px;
+                margin: 14px auto 0;
+            }
 
-    h1{
-        font-size:26px;
-    }
+            .form {
+                margin-top: 20px;
+            }
 
-    .sub{
-        font-size:11px;
-    }
+            .form-group {
+                margin-bottom: 18px;
+            }
 
-    .form{
-        margin-top:24px;
-    }
+            label {
+                font-size: 9px;
+                letter-spacing: 0.6px;
+                margin-bottom: 7px;
+            }
 
-    input,select{
-        height:50px;
-    }
+            input,
+            select {
+                padding: 12px 13px;
+                font-size: 16px;
+                height: 44px;
+                border-radius: 9px;
+            }
 
-    button{
-        height:51px;
-    }
-}
+            input::placeholder {
+                font-size: 14px;
+            }
 
-@media(max-width:360px){
-    .card{
-        padding:25px 15px 22px;
-    }
+            .btn {
+                padding: 12px;
+                font-size: 11px;
+                height: 44px;
+                letter-spacing: 0.8px;
+                margin-top: 4px;
+            }
 
-    .logo{
-        width:56px;
-        height:56px;
-        margin-bottom:14px;
-    }
+            .footer-link {
+                margin-top: 20px;
+                font-size: 10px;
+                line-height: 1.6;
+            }
 
-    h1{
-        font-size:23px;
-    }
+            .footer-link a {
+                display: inline;
+            }
+        }
 
-    input,select,button{
-        height:48px;
-    }
-}
+        /* Extra Small Phones */
+        @media (max-width: 380px) {
+            body {
+                padding: 18px 8px;
+                align-items: center;
+            }
 
-</style> 
-</head> 
-<body> 
-<div class="card"> 
-<div class="logo" aria-label="Digital logic gate">
-            <svg class="gate-symbol" viewBox="0 0 220 140" role="img" aria-hidden="true">
-                <defs>
-                    <linearGradient id="cleanGate" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#63ffd3"/>
-                        <stop offset="45%" stop-color="#00eaff"/>
-                        <stop offset="100%" stop-color="#4c7dff"/>
-                    </linearGradient>
-                    <filter id="cleanGlow" x="-40%" y="-40%" width="180%" height="180%">
-                        <feGaussianBlur stdDeviation="2.5" result="b"/>
-                        <feMerge>
-                            <feMergeNode in="b"/>
-                            <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                    </filter>
-                </defs>
+            .card {
+                padding: 22px 16px;
+                border-radius: 12px;
+            }
 
-                <!-- PCB input traces -->
-                <path class="gate-wire" d="M10 42 H55"/>
-                <path class="gate-wire" d="M10 98 H55"/>
+            .header {
+                margin-bottom: 20px;
+            }
 
-                <!-- Input terminals -->
-                <circle class="gate-node" cx="10" cy="42" r="4"/>
-                <circle class="gate-node" cx="10" cy="98" r="4"/>
+            .logo {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
 
-                <!-- Clean AND gate -->
-                <path class="gate-body"
-                      d="M55 25
-                         H91
-                         C132 25 160 48 160 70
-                         C160 92 132 115 91 115
-                         H55
-                         Z"/>
+            h1 {
+                font-size: 22px;
+            }
 
-                <!-- Small gate accent -->
-                <path class="gate-accent" d="M69 28 V112"/>
+            .form {
+                margin-top: 18px;
+            }
 
-                <!-- Output -->
-                <path class="gate-wire" d="M160 70 H207"/>
-                <circle class="gate-node output" cx="207" cy="70" r="5"/>
+            .form-group {
+                margin-bottom: 16px;
+            }
 
-                <!-- Active signal -->
-                <circle class="signal-dot" cx="55" cy="42" r="3"/>
-                <circle class="signal-dot signal-two" cx="160" cy="70" r="3"/>
-            </svg>
+            input,
+            select {
+                height: 42px;
+            }
+
+            .btn {
+                height: 42px;
+                font-size: 10px;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(
+                    135deg,
+                    #0f172a 0%,
+                    #1e1b4b 50%,
+                    #0f172a 100%
+                );
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo-wrapper">
+                    <div class="logo">ECE</div>
+                </div>
+                <h1>Welcome Back</h1>
+                <div class="divider"></div>
+                <p class="tagline">Login with your roll number</p>
+                <p class="organized-by">Organized by Electronics & Communication Engineering</p>
+            </div>
+
+            <!-- Form -->
+            <form class="form" id="loginForm">
+                <!-- Roll Number -->
+                <div class="form-group">
+                    <label for="rollNo">Roll Number</label>
+                    <input
+                        type="text"
+                        id="rollNo"
+                        placeholder="Example: 24A31A04O1"
+                        autocomplete="off"
+                        maxlength="30"
+                        required
+                    >
+                </div>
+
+                <!-- Submit Button -->
+                <button type="button" class="btn" id="loginBtn">Sign In</button>
+
+                <!-- Error Message -->
+                <div class="message error-message" id="errorMessage"></div>
+            </form>
+
+            <!-- Footer Link -->
+            <div class="footer-link">
+                New student? <a href="/student/register">Create your profile</a>
+            </div>
         </div>
-<h1>Welcome Back</h1> 
-<p class="sub">Login with your roll number and year</p> 
-<div class="error" id="error"></div> 
-<div class="form"> 
-<div class="field"><label>ROLL NUMBER</label><input id="rollNo" placeholder="Example: 24A31A04O1" autocomplete="off"></div> 
-<div class="field"><label>YEAR</label><select id="year"><option value="">Select year</option><option value="2">2nd Year</option><option value="3">3rd Year</option></select></div> 
-<button id="loginBtn">LOGIN →</button> 
-</div> 
-<div class="link">New student? <a href="/student/register">Create your student profile</a></div> 
-</div> 
-<script> 
-const loginBtn=document.getElementById('loginBtn'); 
-const errorBox=document.getElementById('error'); 
-function showError(message){errorBox.textContent=message;errorBox.classList.add('show')} 
-function hideError(){errorBox.textContent='';errorBox.classList.remove('show')} 
-loginBtn.addEventListener('click',async()=>{ 
- hideError(); 
- const rollNo=document.getElementById('rollNo').value.trim().toUpperCase(); 
- const year=document.getElementById('year').value; 
- if(!rollNo){showError('Please enter your roll number.');return} 
- if(!year){showError('Please select your year.');return} 
- loginBtn.disabled=true;loginBtn.textContent='LOGGING IN...'; 
- try{ 
-  const response=await fetch('/api/student/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roll_no:rollNo,year:year})}); 
-  const data=await response.json(); 
-  if(!response.ok) throw new Error(data.error||'Login failed.'); 
-  loginBtn.textContent='SUCCESS ✓'; 
-  setTimeout(()=>{window.location.href='/student/dashboard'},500); 
- }catch(error){showError(error.message||'Something went wrong.');loginBtn.disabled=false;loginBtn.textContent='LOGIN →'} 
-}); 
-document.querySelectorAll('input,select').forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loginBtn.click()}})); 
-document.getElementById('rollNo').addEventListener('input',function(){this.value=this.value.toUpperCase().replace(/\s+/g,'')}); 
-</script> 
-</body> 
+    </div>
+
+    <script>
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const form = document.getElementById('loginForm');
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+
+        function hideError() {
+            errorMessage.classList.remove('show');
+        }
+
+        loginBtn.addEventListener('click', async function (e) {
+            e.preventDefault();
+            hideError();
+
+            // Get form values
+            const rollNo = document.getElementById('rollNo').value.trim().toUpperCase();
+
+            // Validation
+            if (!rollNo) {
+                showError('Please enter your roll number.');
+                return;
+            }
+
+            // Disable button
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'SIGNING IN...';
+
+            try {
+                const response = await fetch('/api/student/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        roll_no: rollNo
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Login failed.');
+                }
+
+                loginBtn.textContent = '✓ SUCCESS';
+                
+                setTimeout(() => {
+                    window.location.href = '/student/dashboard';
+                }, 800);
+
+            } catch (error) {
+                console.error('Login error:', error);
+                showError(error.message || 'Something went wrong. Please try again.');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Sign In';
+            }
+        });
+
+        // Enter key support
+        form.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                loginBtn.click();
+            }
+        });
+
+        // Auto format roll number
+        document.getElementById('rollNo').addEventListener('input', function () {
+            this.value = this.value.toUpperCase().replace(/\s+/g, '');
+        });
+    </script>
+</body>
+
 </html>
