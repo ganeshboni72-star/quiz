@@ -801,7 +801,7 @@ def get_winners(quiz_id):
         supabase
         .table("quiz_responses")
         .select(
-            "student_id,roll_no,name,section,year,"
+            "student_id,roll_no,name,branch,section,year,"
             "score,total_questions,total_time_taken,submitted_at"
         )
         .eq("quiz_id", quiz_id)
@@ -817,7 +817,7 @@ def get_winners(quiz_id):
     winners_response = (
         supabase
         .table("winners")
-        .select("student_id,roll_no,name,section,year")
+        .select("student_id,roll_no,name,branch,section,year")
         .eq("quiz_id", quiz_id)
         .execute()
     )
@@ -840,6 +840,7 @@ def get_winners(quiz_id):
             "student_id": row.get("student_id"),
             "roll_no": row.get("roll_no", ""),
             "name": row.get("name", "Student"),
+            "branch": row.get("branch", ""),
             "section": row.get("section", ""),
             "year": row.get("year", ""),
             "score": row.get("score", 0),
