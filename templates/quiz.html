@@ -847,6 +847,42 @@ button:disabled{
         grid-template-columns:1fr;
     }
 }
+
+/* Mobile quiz fullscreen start overlay */
+.fullscreen-start{
+    position:fixed;
+    inset:0;
+    z-index:500000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:22px;
+    background:rgba(2,7,13,.97);
+    text-align:center;
+}
+.fullscreen-start.hidden{display:none}
+.fullscreen-start-card{
+    width:min(430px,100%);
+    padding:32px 22px;
+    border:1px solid rgba(69,231,255,.22);
+    border-radius:22px;
+    background:linear-gradient(145deg,rgba(13,29,44,.98),rgba(5,13,22,.98));
+    box-shadow:0 25px 80px rgba(0,0,0,.55);
+}
+.fullscreen-start-card h2{
+    font-size:24px;
+    margin-bottom:12px;
+}
+.fullscreen-start-card p{
+    color:#9ab0bf;
+    font-size:13px;
+    line-height:1.65;
+    margin-bottom:22px;
+}
+.fullscreen-start-card button{
+    width:100%;
+}
+
 </style>
 
 
@@ -855,6 +891,20 @@ button:disabled{
 
 <body>
 
+
+
+<!-- =====================================================
+     FULLSCREEN START
+     Fullscreen is requested only after a real user tap.
+     Screen timeout/backgrounding must NOT submit the quiz.
+===================================================== -->
+<div class="fullscreen-start" id="fullscreenStart">
+    <div class="fullscreen-start-card">
+        <h2>Ready to Start?</h2>
+        <p>Tap below to enter full-screen mode and begin the quiz.</p>
+        <button type="button" id="startFullscreenBtn">START QUIZ</button>
+    </div>
+</div>
 
 <!-- =====================================================
      QUIZ
@@ -1132,6 +1182,16 @@ let tabSwitchTimer = null;
 let quizStartTime = null;
 let totalTimeTaken = 0;
 
+// Fullscreen state.
+// Screen timeout / screen-off must never submit the quiz.
+let fullscreenStarted = false;
+let fullscreenExitSubmitting = false;
+
+// Protect the initial fullscreen request from being interpreted
+// as a fullscreen violation.
+let fullscreenWasEntered = false;
+let fullscreenStartInProgress = false;
+
 
 /* =====================================================
    SHORTCUT
@@ -1339,16 +1399,14 @@ async function init() {
         }
 
 
-        // Quiz starts automatically after the questions are loaded.
-        started = true;
+        // Quiz starts only after the student taps START QUIZ,
+        // so the browser can grant Fullscreen permission.
+        started = false;
         submitting = false;
-        quizStartTime = Date.now();
+        quizStartTime = null;
         totalTimeTaken = 0;
 
-        // ONE TOTAL QUIZ TIMER: 15 minutes for the complete quiz.
-        startTotalTimer(15 * 60);
-
-        showQuestion();
+        $("fullscreenStart").classList.remove("hidden");
 
 
     }
@@ -1641,7 +1699,8 @@ function updateAnswered() {
    TOTAL QUIZ TIMER
    ===================================================== */
 
-const TOTAL_QUIZ_SECONDS = 15 * 60;
+const DEFAULT_QUIZ_DURATION_MINUTES = 15;
+let TOTAL_QUIZ_SECONDS = DEFAULT_QUIZ_DURATION_MINUTES * 60;
 
 function startTotalTimer(seconds) {
 
@@ -1778,131 +1837,143 @@ $("next")
 
 
 /* =====================================================
-   TAB SWITCH ONLY
-   Refresh / F5 must NOT submit.
-   Another browser tab staying hidden DOES submit.
+   FULLSCREEN + MOBILE SCREEN-TIMEOUT SAFE
+   - Quiz starts in Fullscreen after a user tap.
+   - Exiting Fullscreen while the quiz is active submits.
+   - Screen timeout / screen-off must NOT submit.
+   - Page visibility changes alone do NOT submit, because
+     mobile screen timeout can also make the page hidden.
+   - Refresh / F5 must NOT submit.
    ===================================================== */
 
-/*
- * Refresh/reload/navigation fires beforeunload.
- * A normal tab switch does not.
- */
-window.addEventListener(
-    "beforeunload",
-    function () {
-
-        pageIsBeingReloaded = true;
-
-        clearTimeout(
-            tabSwitchTimer
-        );
-
-        tabSwitchTimer = null;
-
+async function enterQuizFullscreen() {
+    // Prevent double taps while the fullscreen request is pending.
+    if (fullscreenStartInProgress || started) {
+        return;
     }
-);
 
+    fullscreenStartInProgress = true;
+    fullscreenWasEntered = false;
 
-function handleTabSwitch() {
+    try {
+        const root = document.documentElement;
+
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            if (root.requestFullscreen) {
+                await root.requestFullscreen({ navigationUI: "hide" });
+            } else if (root.webkitRequestFullscreen) {
+                root.webkitRequestFullscreen();
+            }
+        }
+
+        // Let the browser finish dispatching the initial fullscreenchange.
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        fullscreenWasEntered =
+            !!document.fullscreenElement ||
+            !!document.webkitFullscreenElement;
+
+    } catch (error) {
+        // Some mobile browsers do not support the Fullscreen API.
+        // The quiz can still start normally.
+        console.warn("Fullscreen request was not available:", error);
+    } finally {
+        fullscreenStartInProgress = false;
+    }
+
+    fullscreenStarted = true;
+
+    $("fullscreenStart").classList.add("hidden");
+
+    started = true;
+    submitting = false;
+    quizFinished = false;
+    quizStartTime = Date.now();
+    totalTimeTaken = 0;
+
+    const durationMinutes = Math.max(1, Number(quiz?.duration_minutes) || DEFAULT_QUIZ_DURATION_MINUTES);
+    TOTAL_QUIZ_SECONDS = durationMinutes * 60;
+    startTotalTimer(TOTAL_QUIZ_SECONDS);
+    showQuestion();
+}
+
+$("startFullscreenBtn").addEventListener("click", async function () {
+    const button = $("startFullscreenBtn");
+
+    if (button.disabled || started || fullscreenStartInProgress) {
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "STARTING...";
+
+    try {
+        await enterQuizFullscreen();
+    } finally {
+        button.disabled = false;
+        button.textContent = "START QUIZ";
+    }
+});
+
+/*
+ * Fullscreen exit handling.
+ *
+ * The initial fullscreen transition is ignored.
+ * Only an actual fullscreen session that was entered and then exited
+ * can trigger automatic submission.
+ *
+ * visibilitychange is intentionally NOT used because screen timeout
+ * / screen-off on mobile can also hide the document.
+ */
+function handleFullscreenChange() {
+    const isFullscreen =
+        !!document.fullscreenElement ||
+        !!document.webkitFullscreenElement;
+
+    if (isFullscreen) {
+        fullscreenWasEntered = true;
+        return;
+    }
 
     if (
+        fullscreenStartInProgress ||
+        !fullscreenWasEntered ||
+        !fullscreenStarted ||
         !started ||
         submitting ||
-        tabSwitchSubmitted ||
         quizFinished ||
-        pageIsBeingReloaded
+        fullscreenExitSubmitting
     ) {
         return;
     }
 
+    fullscreenExitSubmitting = true;
 
-    tabSwitchSubmitted = true;
-
-
-    /*
-     * Warning first.
-     * Then submit automatically.
-     */
     alert(
-        "Warning: You switched to another tab. Your quiz will be submitted automatically."
+        "You exited full-screen mode. Your quiz will be submitted automatically."
     );
 
-
-    submitQuiz(
-        true
-    );
-
+    submitQuiz(true);
 }
 
+document.addEventListener("fullscreenchange", handleFullscreenChange);
+document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+
+window.addEventListener("beforeunload", function () {
+    pageIsBeingReloaded = true;
+});
 
 /*
- * visibilitychange detects an actual browser-tab switch.
+ * Intentionally no auto-submit here.
+ *
+ * Screen timeout / screen lock can trigger visibilitychange.
+ * Therefore a hidden page is NOT treated as a tab/app switch.
+ * Fullscreen exit is handled separately above.
  */
-document.addEventListener(
-    "visibilitychange",
-    function () {
-
-        if (
-            document.visibilityState !== "hidden"
-        ) {
-
-            clearTimeout(
-                tabSwitchTimer
-            );
-
-            tabSwitchTimer = null;
-
-            return;
-
-        }
-
-
-        if (
-            !started ||
-            submitting ||
-            tabSwitchSubmitted ||
-            quizFinished
-        ) {
-
-            return;
-
-        }
-
-
-        clearTimeout(
-            tabSwitchTimer
-        );
-
-
-        /*
-         * Give refresh/F5 time to fire beforeunload.
-         * If beforeunload fires, pageIsBeingReloaded becomes true
-         * and this callback will not submit.
-         */
-        tabSwitchTimer =
-            setTimeout(
-                function () {
-
-                    if (
-                        document.visibilityState === "hidden" &&
-                        !pageIsBeingReloaded &&
-                        started &&
-                        !submitting &&
-                        !tabSwitchSubmitted &&
-                        !quizFinished
-                    ) {
-
-                        handleTabSwitch();
-
-                    }
-
-                },
-                500
-            );
-
-    }
-);
-
+document.addEventListener("visibilitychange", function () {
+    // No submission here.
+    // Screen timeout / screen-off must not submit the quiz.
+});
 
 async function submitQuiz(autoSubmitted = false) {
 
@@ -2022,6 +2093,25 @@ async function submitQuiz(autoSubmitted = false) {
 
         quizFinished =
             true;
+
+        fullscreenExitSubmitting = true;
+
+        /*
+         * Leave Fullscreen only after started=false so the
+         * fullscreenchange handler cannot submit twice.
+         */
+        try {
+            if (document.fullscreenElement && document.exitFullscreen) {
+                await document.exitFullscreen();
+            } else if (
+                document.webkitFullscreenElement &&
+                document.webkitExitFullscreen
+            ) {
+                document.webkitExitFullscreen();
+            }
+        } catch (error) {
+            console.warn("Could not exit fullscreen:", error);
+        }
 
 
         /*
