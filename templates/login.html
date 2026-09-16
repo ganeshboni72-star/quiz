@@ -1,0 +1,595 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<title>Quiz Arena | Login</title> 
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+    --bg:#030911;
+    --panel:#071725;
+    --panel2:#0a1e2d;
+    --border:rgba(92,224,255,.18);
+    --text:#f3fcff;
+    --muted:#86a9b8;
+    --cyan:#43e7ff;
+    --cyan2:#00b8ff;
+    --green:#3dffbd;
+    --purple:#8d6cff;
+;--blue:#247cff}
+
+html,body{
+    min-height:100%;
+}
+
+body{
+    min-height:100vh;
+    position:relative;
+    overflow:hidden;
+    font-family:Arial,sans-serif;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:
+        radial-gradient(circle at 15% 15%,rgba(67,231,255,.13),transparent 26%),
+        radial-gradient(circle at 85% 80%,rgba(61,255,189,.08),transparent 25%),
+        radial-gradient(circle at 50% 100%,rgba(141,108,255,.10),transparent 35%),
+        #030911;
+}
+
+/* Electronic PCB background */
+body:before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:.32;
+    background-image:
+        linear-gradient(rgba(67,231,255,.045) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(67,231,255,.045) 1px,transparent 1px);
+    background-size:42px 42px;
+    mask-image:linear-gradient(to bottom,black,transparent 92%);
+}
+
+body:after{
+    content:"";
+    position:fixed;
+    width:420px;
+    height:420px;
+    left:-180px;
+    bottom:-210px;
+    border:1px solid rgba(67,231,255,.14);
+    border-radius:50%;
+    box-shadow:
+        0 0 0 28px rgba(67,231,255,.025),
+        0 0 0 56px rgba(67,231,255,.018),
+        0 0 70px rgba(67,231,255,.08);
+    pointer-events:none;
+}
+
+.card{
+    position:relative;
+    z-index:2;
+    width:100%;
+    max-width:480px;
+    padding:42px 40px 34px;
+    border:1px solid rgba(67,231,255,.20);
+    border-radius:26px;
+    background:
+        linear-gradient(145deg,rgba(9,30,45,.94),rgba(3,13,22,.96));
+    backdrop-filter:blur(22px);
+    box-shadow:
+        0 35px 100px rgba(0,0,0,.58),
+        0 0 45px rgba(67,231,255,.08),
+        inset 1px 1px 0 rgba(255,255,255,.06);
+    overflow:hidden;
+}
+
+.card:before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:10%;
+    right:10%;
+    height:1px;
+    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+    box-shadow:0 0 18px var(--cyan);
+}
+
+.card:after{
+    content:"";
+    position:absolute;
+    width:170px;
+    height:170px;
+    right:-95px;
+    top:-95px;
+    border:1px solid rgba(141,108,255,.18);
+    border-radius:50%;
+    box-shadow:
+        0 0 0 15px rgba(141,108,255,.025),
+        0 0 35px rgba(141,108,255,.08);
+    pointer-events:none;
+}
+
+/* =========================================
+           CLEAN LOGIC-GATE EMBLEM
+        ========================================= */
+
+        .logo {
+            width: 150px;
+            height: 105px;
+            margin: 0 auto 22px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transform: translateZ(48px);
+            transform-style: preserve-3d;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            transition: transform .35s cubic-bezier(.2,.8,.2,1);
+        }
+
+        /* Soft circular aura behind the gate */
+        .logo::before {
+            content: "";
+            position: absolute;
+            width: 112px;
+            height: 112px;
+            border-radius: 50%;
+            background: radial-gradient(
+                circle,
+                rgba(0,234,255,.13) 0%,
+                rgba(0,234,255,.045) 38%,
+                transparent 72%
+            );
+            filter: blur(3px);
+            pointer-events: none;
+        }
+
+        /* Tiny PCB indicator */
+        .logo::after {
+            content: "";
+            position: absolute;
+            right: 10px;
+            top: 15px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #dffff7;
+            box-shadow:
+                0 0 7px #fff,
+                0 0 15px var(--cyan),
+                0 0 25px rgba(0,234,255,.8);
+            animation: gateLed 1.7s ease-in-out infinite;
+        }
+
+        .logo:hover {
+            transform: translateZ(62px) scale(1.035);
+        }
+
+        .gate-symbol {
+            width: 148px;
+            height: 96px;
+            overflow: visible;
+            position: relative;
+            z-index: 2;
+            filter:
+                drop-shadow(0 0 3px rgba(0,234,255,.9))
+                drop-shadow(0 0 9px rgba(0,234,255,.35));
+        }
+
+        .gate-wire {
+            fill: none;
+            stroke: url(#cleanGate);
+            stroke-width: 5;
+            stroke-linecap: round;
+            filter: url(#cleanGlow);
+        }
+
+        .gate-body {
+            fill: rgba(0,234,255,.035);
+            stroke: url(#cleanGate);
+            stroke-width: 5;
+            stroke-linejoin: round;
+            filter: url(#cleanGlow);
+        }
+
+        .gate-accent {
+            fill: none;
+            stroke: rgba(108,255,218,.42);
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+
+        .gate-node {
+            fill: #d8fff5;
+            stroke: var(--cyan);
+            stroke-width: 2;
+            filter: url(#cleanGlow);
+        }
+
+        .gate-node.output {
+            fill: #fff;
+        }
+
+        .signal-dot {
+            fill: #fff;
+            filter: url(#cleanGlow);
+            animation: signalMove 1.8s linear infinite;
+        }
+
+        .signal-two {
+            animation-delay: .9s;
+        }
+
+        @keyframes signalMove {
+            0% { opacity: 0; transform: translateX(-8px); }
+            18% { opacity: 1; }
+            42% { opacity: 1; transform: translateX(20px); }
+            55%, 100% { opacity: 0; transform: translateX(42px); }
+        }
+
+        @keyframes gateLed {
+            0%, 100% { opacity: .45; }
+            50% { opacity: 1; }
+        }
+
+        @media (max-width: 560px) {
+            .logo {
+                width: 130px;
+                height: 94px;
+            }
+
+            .gate-symbol {
+                width: 128px;
+                height: 84px;
+            }
+        }
+
+h1{
+    position:relative;
+    z-index:2;
+    text-align:center;
+    font-size:31px;
+    line-height:1.15;
+    letter-spacing:-.6px;
+    color:#f4feff;
+    text-shadow:0 0 18px rgba(67,231,255,.15);
+}
+
+.sub{
+    position:relative;
+    z-index:2;
+    text-align:center;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.5;
+    margin-top:9px;
+}
+
+.form{
+    position:relative;
+    z-index:2;
+    margin-top:29px;
+}
+
+.field{
+    margin-bottom:17px;
+}
+
+.field label{
+    display:block;
+    margin-bottom:8px;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1px;
+    color:#bfe4ed;
+}
+
+input,select{
+    display:block;
+    width:100%;
+    height:52px;
+    padding:0 15px;
+    border:1px solid rgba(67,231,255,.16);
+    outline:none;
+    border-radius:12px;
+    color:#effcff;
+    background:
+        linear-gradient(145deg,rgba(5,23,35,.96),rgba(3,12,20,.96));
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.035),
+        0 8px 18px rgba(0,0,0,.18);
+    transition:
+        border-color .25s ease,
+        box-shadow .25s ease,
+        transform .25s ease;
+}
+
+input::placeholder{
+    color:#557383;
+}
+
+input:hover,select:hover{
+    border-color:rgba(67,231,255,.32);
+    box-shadow:
+        0 0 18px rgba(67,231,255,.07),
+        inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+input:focus,select:focus{
+    border-color:var(--cyan);
+    transform:translateY(-1px);
+    box-shadow:
+        0 0 0 3px rgba(67,231,255,.08),
+        0 0 24px rgba(67,231,255,.14),
+        inset 0 0 14px rgba(67,231,255,.035);
+}
+
+select{
+    cursor:pointer;
+}
+
+select option{
+    color:white;
+    background:#071725;
+}
+
+button{
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+    height:53px;
+    border:1px solid rgba(67,231,255,.42);
+    border-radius:12px;
+    color:#03131b;
+    background:linear-gradient(135deg,#b7faff,#43e7ff 48%,#3dffbd);
+    font-weight:950;
+    letter-spacing:.5px;
+    cursor:pointer;
+    margin-top:5px;
+    box-shadow:
+        0 12px 28px rgba(0,190,255,.18),
+        0 0 25px rgba(67,231,255,.12),
+        inset 2px 2px 5px rgba(255,255,255,.65),
+        inset -2px -2px 5px rgba(0,100,120,.22);
+    transition:
+        transform .22s ease,
+        box-shadow .22s ease,
+        filter .22s ease;
+}
+
+button:before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:-100%;
+    width:55%;
+    height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+    transform:skewX(-20deg);
+    transition:left .55s ease;
+}
+
+button:hover{
+    transform:translateY(-3px);
+    filter:brightness(1.08);
+    box-shadow:
+        0 17px 35px rgba(0,190,255,.25),
+        0 0 34px rgba(67,231,255,.22),
+        inset 2px 2px 6px rgba(255,255,255,.72),
+        inset -2px -2px 6px rgba(0,100,120,.25);
+}
+
+button:hover:before{
+    left:145%;
+}
+
+button:active{
+    transform:translateY(0) scale(.985);
+}
+
+button:disabled{
+    opacity:.62;
+    cursor:not-allowed;
+    transform:none;
+}
+
+.error{
+    display:none;
+    margin-top:15px;
+    padding:12px 13px;
+    border-radius:10px;
+    color:#ff9fac;
+    background:rgba(255,72,100,.07);
+    border:1px solid rgba(255,93,115,.22);
+    font-size:11px;
+    line-height:1.5;
+    font-weight:800;
+    box-shadow:0 0 18px rgba(255,70,100,.05);
+}
+
+.error.show{
+    display:block;
+}
+
+.link{
+    position:relative;
+    z-index:2;
+    text-align:center;
+    margin-top:20px;
+    color:#7795a3;
+    font-size:11px;
+    line-height:1.5;
+}
+
+.link a{
+    color:#72eaff;
+    text-decoration:none;
+    font-weight:900;
+    transition:color .2s ease,text-shadow .2s ease;
+}
+
+.link a:hover{
+    color:#b9f8ff;
+    text-decoration:none;
+    text-shadow:0 0 12px rgba(67,231,255,.55);
+}
+
+@media(max-width:560px){
+    body{
+        padding:15px 11px;
+        overflow:auto;
+    }
+
+    .card{
+        max-width:100%;
+        padding:30px 20px 25px;
+        border-radius:21px;
+    }
+
+    .logo{
+        width:62px;
+        height:62px;
+        font-size:25px;
+        border-radius:18px;
+    }
+
+    h1{
+        font-size:26px;
+    }
+
+    .sub{
+        font-size:11px;
+    }
+
+    .form{
+        margin-top:24px;
+    }
+
+    input,select{
+        height:50px;
+    }
+
+    button{
+        height:51px;
+    }
+}
+
+@media(max-width:360px){
+    .card{
+        padding:25px 15px 22px;
+    }
+
+    .logo{
+        width:56px;
+        height:56px;
+        margin-bottom:14px;
+    }
+
+    h1{
+        font-size:23px;
+    }
+
+    input,select,button{
+        height:48px;
+    }
+}
+
+</style> 
+</head> 
+<body> 
+<div class="card"> 
+<div class="logo" aria-label="Digital logic gate">
+            <svg class="gate-symbol" viewBox="0 0 220 140" role="img" aria-hidden="true">
+                <defs>
+                    <linearGradient id="cleanGate" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#63ffd3"/>
+                        <stop offset="45%" stop-color="#00eaff"/>
+                        <stop offset="100%" stop-color="#4c7dff"/>
+                    </linearGradient>
+                    <filter id="cleanGlow" x="-40%" y="-40%" width="180%" height="180%">
+                        <feGaussianBlur stdDeviation="2.5" result="b"/>
+                        <feMerge>
+                            <feMergeNode in="b"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+
+                <!-- PCB input traces -->
+                <path class="gate-wire" d="M10 42 H55"/>
+                <path class="gate-wire" d="M10 98 H55"/>
+
+                <!-- Input terminals -->
+                <circle class="gate-node" cx="10" cy="42" r="4"/>
+                <circle class="gate-node" cx="10" cy="98" r="4"/>
+
+                <!-- Clean AND gate -->
+                <path class="gate-body"
+                      d="M55 25
+                         H91
+                         C132 25 160 48 160 70
+                         C160 92 132 115 91 115
+                         H55
+                         Z"/>
+
+                <!-- Small gate accent -->
+                <path class="gate-accent" d="M69 28 V112"/>
+
+                <!-- Output -->
+                <path class="gate-wire" d="M160 70 H207"/>
+                <circle class="gate-node output" cx="207" cy="70" r="5"/>
+
+                <!-- Active signal -->
+                <circle class="signal-dot" cx="55" cy="42" r="3"/>
+                <circle class="signal-dot signal-two" cx="160" cy="70" r="3"/>
+            </svg>
+        </div>
+<h1>Welcome Back</h1> 
+<p class="sub">Login with your roll number and year</p> 
+<div class="error" id="error"></div> 
+<div class="form"> 
+<div class="field"><label>ROLL NUMBER</label><input id="rollNo" placeholder="Example: 24A31A04O1" autocomplete="off"></div> 
+<div class="field"><label>YEAR</label><select id="year"><option value="">Select year</option><option value="2">2nd Year</option><option value="3">3rd Year</option></select></div> 
+<button id="loginBtn">LOGIN →</button> 
+</div> 
+<div class="link">New student? <a href="/student/register">Create your student profile</a></div> 
+</div> 
+<script> 
+const loginBtn=document.getElementById('loginBtn'); 
+const errorBox=document.getElementById('error'); 
+function showError(message){errorBox.textContent=message;errorBox.classList.add('show')} 
+function hideError(){errorBox.textContent='';errorBox.classList.remove('show')} 
+loginBtn.addEventListener('click',async()=>{ 
+ hideError(); 
+ const rollNo=document.getElementById('rollNo').value.trim().toUpperCase(); 
+ const year=document.getElementById('year').value; 
+ if(!rollNo){showError('Please enter your roll number.');return} 
+ if(!year){showError('Please select your year.');return} 
+ loginBtn.disabled=true;loginBtn.textContent='LOGGING IN...'; 
+ try{ 
+  const response=await fetch('/api/student/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roll_no:rollNo,year:year})}); 
+  const data=await response.json(); 
+  if(!response.ok) throw new Error(data.error||'Login failed.'); 
+  loginBtn.textContent='SUCCESS ✓'; 
+  setTimeout(()=>{window.location.href='/student/dashboard'},500); 
+ }catch(error){showError(error.message||'Something went wrong.');loginBtn.disabled=false;loginBtn.textContent='LOGIN →'} 
+}); 
+document.querySelectorAll('input,select').forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();loginBtn.click()}})); 
+document.getElementById('rollNo').addEventListener('input',function(){this.value=this.value.toUpperCase().replace(/\s+/g,'')}); 
+</script> 
+</body> 
+</html>
