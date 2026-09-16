@@ -424,7 +424,8 @@
         .quiz-btn:active:not(:disabled) {
             transform: translateY(0);
         }
-.leaderboard-btn:hover {
+
+        .leaderboard-btn:hover {
             background: rgba(168, 85, 247, 0.18);
             border-color: rgba(168, 85, 247, 0.6);
             transform: translateY(-2px);
@@ -450,120 +451,432 @@
             margin: 0;
         }
 
-        /* Winners section */
+        .completed-btn {
+            cursor: pointer !important;
+            opacity: 1 !important;
+        }
+
+        .completed-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        /* ===== WINNERS CELEBRATION - AMAZING COLORS & VIBES ===== */
+
+        /* Hero Section - Stunning Gradient Background */
         .winners-hero {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(245, 158, 11, 0.08) 100%);
-            border: 1px solid var(--border-color);
+            background: linear-gradient(
+                135deg,
+                #ff006e 0%,
+                #fb5607 15%,
+                #ffbe0b 30%,
+                #8338ec 45%,
+                #3a86ff 60%,
+                #06ffa5 75%,
+                #ff006e 100%
+            );
+            background-size: 300% 300%;
+            animation: celebrationGradient 8s ease infinite, heroPulse 2s ease-in-out infinite;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 20px;
             padding: 40px;
             text-align: center;
             margin-bottom: 30px;
-            box-shadow: 0 15px 40px rgba(168, 85, 247, 0.1);
+            box-shadow: 
+                0 0 60px rgba(255, 0, 110, 0.6),
+                0 0 100px rgba(51, 134, 255, 0.4),
+                0 0 140px rgba(131, 56, 236, 0.3),
+                inset 0 0 50px rgba(255, 255, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated particles background in hero */
+        .winners-hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.4), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.3), transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.35), transparent 50%);
+            animation: particleFloat 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .winners-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 25% 75%, rgba(255, 190, 11, 0.2), transparent 40%),
+                radial-gradient(circle at 75% 25%, rgba(255, 0, 110, 0.2), transparent 40%);
+            animation: shimmer 3s ease-in-out infinite;
+            pointer-events: none;
         }
 
         .winners-icon {
-            font-size: 48px;
+            font-size: 64px;
             margin-bottom: 16px;
             display: block;
+            position: relative;
+            z-index: 2;
+            animation: trophyBounce 1.2s cubic-bezier(0.36, 0, 0.66, -0.56) infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 190, 11, 0.8));
+            text-shadow: 0 0 20px rgba(51, 134, 255, 0.6);
         }
 
         .winners-hero h3 {
-            font-size: 24px;
-            font-weight: 800;
+            font-size: 28px;
+            font-weight: 900;
             margin-bottom: 8px;
-            background: linear-gradient(135deg, #a855f7 0%, #f59e0b 100%);
+            background: linear-gradient(
+                90deg,
+                #ffff00,
+                #ff006e,
+                #3a86ff,
+                #06ffa5,
+                #ffff00
+            );
+            background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            animation: textShimmer 3s ease infinite;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 0 20px rgba(255, 0, 110, 0.4);
         }
 
         .winners-hero p {
-            color: var(--text-secondary);
-            font-size: 13px;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 15px;
             margin: 0;
+            position: relative;
+            z-index: 2;
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
-        /* Winners table */
+        /* Main Winners Table Styling */
         .winners-table {
             width: 100%;
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border: 2px solid rgba(255, 0, 110, 0.5);
+            border-radius: 18px;
             overflow: hidden;
-            background: var(--bg-panel);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(
+                135deg,
+                rgba(15, 23, 42, 0.95) 0%,
+                rgba(30, 27, 75, 0.95) 50%,
+                rgba(15, 23, 42, 0.95) 100%
+            );
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 80px rgba(51, 134, 255, 0.3),
+                inset 0 0 40px rgba(131, 56, 236, 0.1);
+            position: relative;
+            animation: tableGlow 3s ease-in-out infinite;
         }
 
         .table-header {
             display: grid;
-            grid-template-columns: 60px 1fr 120px 120px;
+            grid-template-columns: 60px 1fr 120px 90px 60px;
             gap: 16px;
-            padding: 16px 20px;
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 700;
-            font-size: 11px;
-            color: var(--text-secondary);
+            padding: 20px 24px;
+            background: linear-gradient(
+                90deg,
+                rgba(255, 0, 110, 0.25) 0%,
+                rgba(51, 134, 255, 0.25) 50%,
+                rgba(131, 56, 236, 0.25) 100%
+            );
+            border-bottom: 2px solid rgba(131, 56, 236, 0.4);
+            font-weight: 900;
+            font-size: 12px;
+            color: #06ffa5;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 10px rgba(6, 255, 165, 0.5);
+            animation: headerGlow 2s ease-in-out infinite;
         }
 
+        /* Winners Table Rows - Each with unique celebration color */
         .table-row {
             display: grid;
-            grid-template-columns: 60px 1fr 120px 120px;
+            grid-template-columns: 60px 1fr 120px 90px 60px;
             gap: 16px;
-            padding: 16px 20px;
-            border-bottom: 1px solid rgba(168, 85, 247, 0.05);
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(131, 56, 236, 0.2);
             align-items: center;
-            transition: background 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            animation: rowDropIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            will-change: transform, opacity;
+        }
+
+        .table-row::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: width 0.6s ease;
+            pointer-events: none;
+        }
+
+        .table-row:hover::before {
+            width: 100%;
         }
 
         .table-row:hover {
-            background: rgba(168, 85, 247, 0.05);
+            background: linear-gradient(
+                90deg,
+                rgba(131, 56, 236, 0.15),
+                rgba(51, 134, 255, 0.15),
+                rgba(131, 56, 236, 0.15)
+            );
+            transform: translateX(8px);
         }
 
         .table-row:last-child {
             border-bottom: none;
         }
 
+        .table-row:nth-child(2) { animation-delay: 0.1s; }
+        .table-row:nth-child(3) { animation-delay: 0.2s; }
+        .table-row:nth-child(4) { animation-delay: 0.3s; }
+        .table-row:nth-child(5) { animation-delay: 0.4s; }
+        .table-row:nth-child(6) { animation-delay: 0.5s; }
+        .table-row:nth-child(7) { animation-delay: 0.6s; }
+        .table-row:nth-child(8) { animation-delay: 0.7s; }
+        .table-row:nth-child(9) { animation-delay: 0.8s; }
+        .table-row:nth-child(10) { animation-delay: 0.9s; }
+        .table-row:nth-child(11) { animation-delay: 1s; }
+
+        /* Rank Numbers - Gold & Shimmer */
         .rank {
             font-weight: 900;
-            font-size: 16px;
-            background: linear-gradient(135deg, #a855f7 0%, #f59e0b 100%);
+            font-size: 20px;
+            background: linear-gradient(
+                135deg,
+                #ffff00,
+                #ffbe0b,
+                #fb5607,
+                #ff006e
+            );
+            background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            animation: rankShimmer 2.5s ease infinite;
+            filter: drop-shadow(0 0 8px rgba(255, 190, 11, 0.8));
+            text-shadow: 0 0 15px rgba(255, 190, 11, 0.6);
+        }
+
+        /* First place - Extra special */
+        .table-row:nth-child(2) .rank {
+            font-size: 24px;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
+            text-shadow: 0 0 25px rgba(255, 215, 0, 0.9);
         }
 
         .student-name {
-            font-weight: 700;
-            color: var(--text-primary);
+            font-weight: 800;
+            color: #06ffa5;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 10px rgba(6, 255, 165, 0.4);
         }
 
         .student-roll {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 3px;
+            font-size: 12px;
+            color: rgba(6, 255, 165, 0.7);
+            margin-top: 4px;
         }
 
         .score {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-weight: 700;
-            color: #86efac;
+            background: linear-gradient(135deg, rgba(6, 255, 165, 0.25), rgba(51, 134, 255, 0.25));
+            border: 2px solid rgba(6, 255, 165, 0.6);
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-weight: 800;
+            color: #06ffa5;
             text-align: center;
-            font-size: 12px;
+            font-size: 13px;
+            box-shadow: 0 0 15px rgba(6, 255, 165, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .score:hover {
+            box-shadow: 0 0 25px rgba(6, 255, 165, 0.7);
+            transform: scale(1.05);
         }
 
         .time {
-            background: rgba(168, 85, 247, 0.1);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            color: var(--text-secondary);
+            background: linear-gradient(135deg, rgba(131, 56, 236, 0.25), rgba(255, 0, 110, 0.25));
+            border: 2px solid rgba(131, 56, 236, 0.6);
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #c7b3ff;
             text-align: center;
+            box-shadow: 0 0 15px rgba(131, 56, 236, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .time:hover {
+            box-shadow: 0 0 25px rgba(131, 56, 236, 0.7);
+            transform: scale(1.05);
+        }
+
+        /* ===== CELEBRATION ANIMATIONS ===== */
+
+        @keyframes celebrationGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes heroPulse {
+            0%, 100% { 
+                transform: scale(1);
+                filter: brightness(1);
+            }
+            50% { 
+                transform: scale(1.02);
+                filter: brightness(1.15);
+            }
+        }
+
+        @keyframes trophyBounce {
+            0%, 100% { 
+                transform: translateY(0) scale(1);
+            }
+            50% { 
+                transform: translateY(-15px) scale(1.1);
+            }
+        }
+
+        @keyframes particleFloat {
+            0%, 100% { 
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            50% { 
+                opacity: 0.8;
+                transform: translateY(-20px);
+            }
+        }
+
+        @keyframes shimmer {
+            0%, 100% { 
+                opacity: 0.4;
+            }
+            50% { 
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes textShimmer {
+            0% { background-position: 0% center; }
+            50% { background-position: 100% center; }
+            100% { background-position: 0% center; }
+        }
+
+        @keyframes rankShimmer {
+            0% { background-position: 0% center; }
+            50% { background-position: 100% center; }
+            100% { background-position: 0% center; }
+        }
+
+        @keyframes tableGlow {
+            0%, 100% { 
+                box-shadow: 
+                    0 20px 60px rgba(0, 0, 0, 0.5),
+                    0 0 80px rgba(51, 134, 255, 0.3),
+                    inset 0 0 40px rgba(131, 56, 236, 0.1);
+            }
+            50% { 
+                box-shadow: 
+                    0 20px 60px rgba(0, 0, 0, 0.5),
+                    0 0 120px rgba(255, 0, 110, 0.4),
+                    inset 0 0 50px rgba(131, 56, 236, 0.2);
+            }
+        }
+
+        @keyframes headerGlow {
+            0%, 100% { 
+                text-shadow: 0 0 10px rgba(6, 255, 165, 0.5);
+            }
+            50% { 
+                text-shadow: 0 0 20px rgba(6, 255, 165, 0.9);
+            }
+        }
+
+        @keyframes rowDropIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) rotateX(10deg);
+                filter: blur(5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateX(0);
+                filter: blur(0);
+            }
+        }
+
+        /* Back button styling */
+        .winners-back-wrap {
+            grid-column: 1 / -1;
+            animation: backButtonDrop 0.5s ease-out both;
+        }
+
+        .winners-back-btn {
+            border: 2px solid rgba(168, 85, 247, 0.5);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            background: transparent;
+            color: #06ffa5;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .winners-back-btn:hover {
+            background: rgba(168, 85, 247, 0.15);
+            border-color: rgba(168, 85, 247, 0.8);
+            transform: translateY(-2px);
+        }
+
+        @keyframes backButtonDrop {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Respect user preferences */
+        @media (prefers-reduced-motion: reduce) {
+            .winners-hero,
+            .winners-table,
+            .table-header,
+            .table-row,
+            .rank,
+            .winners-icon {
+                animation: none !important;
+            }
+            
+            .table-row::before {
+                display: none;
+            }
         }
 
         /* Responsive */
@@ -589,7 +902,7 @@
 
             .table-header,
             .table-row {
-                grid-template-columns: 50px 1fr 100px;
+                grid-template-columns: 34px minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, .7fr) minmax(0, .6fr);
                 gap: 10px;
             }
 
@@ -609,6 +922,18 @@
             .tab {
                 padding: 12px 16px;
                 white-space: nowrap;
+            }
+
+            .winners-hero {
+                padding: 30px 20px;
+            }
+
+            .winners-icon {
+                font-size: 48px;
+            }
+
+            .winners-hero h3 {
+                font-size: 22px;
             }
         }
 
@@ -665,17 +990,35 @@
                 padding: 8px 12px;
                 font-size: 10px;
             }
-        }
-    
-.completed-btn {
-    cursor: pointer !important;
-    opacity: 1 !important;
-}
-.completed-btn:hover {
-    transform: translateY(-1px);
-}
 
-</style>
+            .winners-hero {
+                padding: 20px 16px;
+                margin-bottom: 20px;
+            }
+
+            .winners-icon {
+                font-size: 40px;
+                margin-bottom: 12px;
+            }
+
+            .winners-hero h3 {
+                font-size: 18px;
+            }
+
+            .winners-hero p {
+                font-size: 12px;
+            }
+
+            .table-header,
+            .table-row {
+                grid-template-columns: 30px minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, .62fr) minmax(0, .58fr);
+                gap: 3px;
+                padding: 9px 5px;
+                font-size: 10px;
+            }
+        }
+    </style>
+
 </head>
 
 <body>
@@ -844,67 +1187,25 @@
             return `${minutes}m ${String(secs).padStart(2, "0")}s`;
         }
 
-        function renderWinners(data, quizzes) {
-            const box = document.getElementById("winnersBox");
-            if (!box) return;
+        async function closeWinners() {
+            try {
+                const quizData = await api("/api/student/quizzes");
+                renderQuizzes(quizData.quizzes);
+                renderCompleted(quizData.quizzes);
 
-            if (!quizzes.length) {
-                box.innerHTML = `<div class="empty-state"><p>No quizzes available.</p></div>`;
-                return;
+                document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+                document.querySelectorAll(".section").forEach(x => x.classList.remove("active"));
+
+                const completedTab = document.querySelector('[data-tab="completed"]');
+                const completedSection = document.getElementById("completed");
+
+                if (completedTab) completedTab.classList.add("active");
+                if (completedSection) completedSection.classList.add("active");
+
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } catch (error) {
+                alert(error.message);
             }
-
-            if (!data.revealed) {
-                box.innerHTML = `<div class="empty-state"><p>Results will be declared soon. Check back later!</p></div>`;
-                return;
-            }
-
-            const winners = data.winners || [];
-            if (!winners.length) {
-                box.innerHTML = `<div class="empty-state"><p>No winners declared yet.</p></div>`;
-                return;
-            }
-
-            box.innerHTML = `
-                <div class="winners-hero">
-                    <span class="winners-icon">🏆</span>
-                    <h3>Top Performers</h3>
-                    <p>${escapeHTML(data.quiz?.title || 'Quiz Results')}</p>
-                </div>
-                <div class="winners-table">
-                    <div class="table-header">
-                        <div>Rank</div>
-                        <div>Name</div>
-                        <div>Score</div>
-                        <div>Time</div>
-                    </div>
-                    ${winners.map(w => `
-                        <div class="table-row">
-                            <div class="rank">#${w.position}</div>
-                            <div>
-                                <div class="student-name">${escapeHTML(w.name)}</div>
-                                <div class="student-roll">${escapeHTML(w.roll_no)}</div>
-                            </div>
-                            <div class="score">${w.score}/${w.total_questions}</div>
-                            <div class="time">${formatTime(w.total_time_taken)}</div>
-                        </div>
-                    `).join("")}
-                </div>
-            `;
-        }
-
-        async function loadDashboardDeclarations(quizzes) {
-            let winnersData = { revealed: false, winners: [] };
-            const winnersQuiz = quizzes.find(q => q.winners_revealed);
-
-            if (winnersQuiz) {
-                try {
-                    winnersData = await api("/api/student/winners/" + winnersQuiz.id);
-                } catch (error) {
-                    console.error("Winners load failed:", error);
-                }
-            }
-
-            renderWinners(winnersData, quizzes);
         }
 
         async function openWinners(id) {
@@ -931,6 +1232,10 @@
                         `;
                     } else {
                         box.innerHTML = `
+                            <div class="winners-back-wrap" style="grid-column: 1 / -1;">
+                                <button type="button" class="winners-back-btn" onclick="closeWinners()">← Back</button>
+                            </div>
+
                             <div class="winners-hero" style="grid-column: 1 / -1;">
                                 <span class="winners-icon">🏆</span>
                                 <h3>Winners</h3>
@@ -941,23 +1246,18 @@
                                 <div class="table-header">
                                     <div>Rank</div>
                                     <div>Name</div>
-                                    <div>Score</div>
-                                    <div>Time</div>
+                                    <div>Roll Number</div>
+                                    <div>Branch</div>
+                                    <div>Sec</div>
                                 </div>
 
                                 ${winners.map((w, index) => `
                                     <div class="table-row">
                                         <div class="rank">#${w.position ?? index + 1}</div>
-                                        <div>
-                                            <div class="student-name">${escapeHTML(w.name || "Student")}</div>
-                                            <div class="student-roll">${escapeHTML(w.roll_no || "")}</div>
-                                        </div>
-                                        <div class="score">
-                                            ${w.score ?? 0}/${w.total_questions ?? 0}
-                                        </div>
-                                        <div class="time">
-                                            ${formatTime(w.total_time_taken || 0)}
-                                        </div>
+                                        <div class="student-name">${escapeHTML(w.name || "Student")}</div>
+                                        <div class="student-roll">${escapeHTML(w.roll_no || "—")}</div>
+                                        <div>${escapeHTML(w.branch || "—")}</div>
+                                        <div>${escapeHTML(w.section || "—")}</div>
                                     </div>
                                 `).join("")}
                             </div>
